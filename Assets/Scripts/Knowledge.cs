@@ -9,7 +9,7 @@ public class Knowledge {
 
 	public Knowledge(Map map){
 		this.map = map;
-		isRevealedTile = new bool[map.mapSize][map.mapSize];
+		isRevealedTile = new bool[map.mapSize, map.mapSize];
 
 		for (int i = 0; i < map.mapSize; i++)
 			for (int j = 0; j < map.mapSize; j++)

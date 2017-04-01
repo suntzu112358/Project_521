@@ -11,6 +11,6 @@ public class Inventory {
 	}
 
 	public bool BuildRecipe(CraftingRecipe r){
-
+		return true;
 	}
 }

@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class MapTile {
 
-	public Transform sprite;
-	private Resource resource = null;
+	private Transform spriteInstance;
+	private Resource resource;
 	private TileType type;
 
+	public MapTile(Transform sprite, Resource resource, TileType type){
+		this.spriteInstance = sprite;
+		this.resource = resource;
+		this.type = type;
+	}
+
 	public bool isResource(){
-		return resource == null;
+		return resource == Resource.Nothing;
 	}
 
 	/**
@@ -21,5 +27,13 @@ public class MapTile {
 
 	public TileType getTileType(){
 		return type;
+	}
+
+	public void setPosition(Vector3 newPos){
+		spriteInstance.position = newPos;
+	}
+
+	public void Destroy(){
+		GameObject.Destroy (spriteInstance.gameObject);
 	}
 }

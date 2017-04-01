@@ -4,5 +4,5 @@ using UnityEngine;
 
 public enum Resource 
 {
-	Wood, Iron, Axe, Bridge
+	Wood, Iron, Axe, Bridge, Nothing
 }
