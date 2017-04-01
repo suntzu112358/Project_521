@@ -1,0 +1,27 @@
+-We start with n caracters next to base. Base is on edge of island (map)
+
+-Terrain types: 
+  -Freely navigable: Plains, Forest, Sand
+  -Water: can build bridge if width is 1
+  -Mountain: can't cross unless unit has mountain climbing kit
+  -Boulders: can't cross
+
+-Resources:
+  -Tall Grass: found in plains
+  -Wood: get from forest with axe
+  -Iron: randomly found, need pickaxe
+  -Sheep: found on plain, need shears to get wool, other side of river
+  -Stone: Next to Boulders
+  -Hermit: Gifts magic bottle. House found in mountain
+  
+-Need to be in base to build stuff
+-Recipes:
+  -Steel: iron + coal
+  -Hammer: 1 wood, 1 stone, 1 rope
+  -Axe: wood + iron + hammer
+  -Pickaxe: wood + steel + hammer
+  -Rope: 3 Tall grass
+  -Mountain climbimg kit: 2 Ropes + iron + hammer
+  -Fabric: 2 Wool
+  -Bridge: 10 wood, 4 Ropes
+  -Ship: 30 wood, 15 iron, 10 Ropes, 30 Fabric, Magic wind blowing bottle, Hammer
