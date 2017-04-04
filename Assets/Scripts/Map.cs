@@ -10,14 +10,19 @@ public class Map{
 
 	private const int terrainDepth = 1;
 	private const int resourceDepth = 0;
+    private const int minionDepth = -1;
 
+    public TileType getTileTypeAt(int x, int y)
+    {
+        return mapGrid[x, y].getTileType();
+    }
 
-	public MapTile getTileAt (int x, int y) {
-		//TODO: check bounds
-		return mapGrid[x, y];
-	}
+    public Resource getResource(int x, int y)
+    {
+        return mapGrid[x, y].getResource();
+    }
 
-	public void setTileAt(int x, int y, MapTile newTile)
+    public void setTileAt(int x, int y, MapTile newTile)
 	{
 		if (mapGrid [x, y] != null) {
 			mapGrid [x, y].Destroy ();

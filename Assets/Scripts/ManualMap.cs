@@ -7,6 +7,7 @@ public class ManualMap : MonoBehaviour
 	public Transform water;
 	public Transform forest;
 	public Transform plains;
+    public Transform minion;
 
 
 	private const int mapSize = 30;
@@ -43,6 +44,12 @@ public class ManualMap : MonoBehaviour
 			MapTile waterTile = new MapTile (Instantiate (water), Resource.Nothing, TileType.Water);
 			map.setTileAt (15,j, waterTile);
 		}
+
+        List<Minion> minions = new List<Minion>();
+        Transform newMinion = Instantiate(minion);
+        Minion minionScript = newMinion.GetComponent<Minion>();
+        minionScript.initMinion(newMinion, 1, 1, new Knowledge(map), tileBounds.max.x - tileBounds.min.x);
+        minions.Add(minionScript);
 	}
 	
 	// Update is called once per frame
