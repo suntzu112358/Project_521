@@ -7,9 +7,10 @@ public class Minion : MonoBehaviour {
     private Transform spriteInstance;
     private const float speed = 0.1f;
     private bool isInitialized = false;
-	private float posX;
-	private float posY;
+    private float posX;
+    private float posY;
     private float tileSize;
+    public bool canCrossMountains = false;
 
 	private Knowledge knowledge;
 	private Inventory bag;
@@ -28,10 +29,8 @@ public class Minion : MonoBehaviour {
         spriteInstance.position = new Vector3(posX * tileSize, posY * tileSize, -1);
 	}
 
-    IEnumerator goToPos(List<Vector2> positions)
+    IEnumerator goToPos(List<Position2D> positions)
     {
-        float i_x = 0;
-        float i_y = 0;
 
         Vector3 startPos = gameObject.transform.position;
         for (int i = 0; i < positions.Count; i++)
@@ -47,9 +46,10 @@ public class Minion : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        List<Vector2> list = new List<Vector2>();
-        list.Add(new Vector2(1, 2));
-        list.Add(new Vector2(1, 3));
+        AStar astar = new AStar(GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().map, this);
+        List<Position2D> list;
+        list = astar.pathFindNewTarget(new Position2D((int)posX, (int)posY), new Position2D(10,10));
+
         StartCoroutine(goToPos(list));
      
     }

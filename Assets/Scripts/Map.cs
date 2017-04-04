@@ -14,6 +14,14 @@ public class Map{
 
     public TileType getTileTypeAt(int x, int y)
     {
+        if (x < 0 || x >= mapSize)
+        {
+            return TileType.Water;
+        }
+        if (y < 0 || y >= mapSize)
+        {
+            return TileType.Water;
+        }
         return mapGrid[x, y].getTileType();
     }
 

@@ -10,9 +10,11 @@ public class ManualMap : MonoBehaviour
     public Transform minion;
 
 
-	private const int mapSize = 30;
+	public int mapSize = 30;
 
-	private Map map;
+    public Map map { get; private set; }
+
+    
 
 	// Use this for initialization
 	void Start () 
