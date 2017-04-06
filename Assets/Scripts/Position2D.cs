@@ -7,7 +7,7 @@
 		this.x = x;
 		this.y = y;
 	}
-		
+
 	public override bool Equals (object obj)
 	{
 		if (obj is Position2D) 

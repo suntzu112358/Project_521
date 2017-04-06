@@ -46,6 +46,37 @@ public class Map{
 		this.tileSize = tileSize;
 		mapGrid = new MapTile[mapSize, mapSize];
 	}
-		
+
+    public bool isPassable(TileType type, bool canCrossMountians)
+    {
+        if (type == TileType.Boulder)
+        {
+            return false;
+        }
+        else if (type == TileType.Forest)
+        {
+            return true;
+        }
+        else if (type == TileType.Water)
+        {
+            return false;
+        }
+        else if (type == TileType.Sand)
+        {
+            return true;
+        }
+        else if (type == TileType.Plains)
+        {
+            return true;
+        }
+        else if (type == TileType.Mountain)
+        {
+            return canCrossMountians;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 }

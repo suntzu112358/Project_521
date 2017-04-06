@@ -213,41 +213,8 @@ public class AStar
 		return value;
 	}
 
-    public bool isPassable(TileType type)
-    {
-        if (type == TileType.Boulder)
-        {
-            return false;
-        }
-        else if (type == TileType.Forest)
-        {
-            return true;
-        }
-        else if (type == TileType.Water)
-        {
-            return false;
-        }
-        else if (type == TileType.Sand)
-        {
-            return true;
-        }
-        else if (type == TileType.Plains)
-        {
-            return true;
-        }
-        else if (type == TileType.Mountain)
-        {
-            if(minion.canCrossMountains)
-                return true;
-            return false;
-        }
-        else
-        {
-            return false;
-        }
-    }
+   
 
-	//TODO: return list of neighbors of given position, but only if they are not obstructed
 	public List<Position2D> GetNeighbors(Position2D pos){
         TileType type = map.getTileTypeAt(pos.x + 1, pos.y);
 		List<Position2D> neighbours = new List<Position2D>();
@@ -255,14 +222,14 @@ public class AStar
 
         x++;
         type = map.getTileTypeAt(x, y);
-        if (isPassable(type))
+        if (map.isPassable(type, minion))
         {
             neighbours.Add(new Position2D(x, y));
         }
 
         x -= 2;
         type = map.getTileTypeAt(x, y);
-        if (isPassable(type))
+        if (map.isPassable(type, minion))
         {
             neighbours.Add(new Position2D(x, y));
         }
@@ -270,14 +237,14 @@ public class AStar
         x = pos.x;
         y++;
         type = map.getTileTypeAt(x, y);
-        if (isPassable(type))
+        if (map.isPassable(type, minion))
         {
             neighbours.Add(new Position2D(x, y));
         }
 
         y -= 2;
         type = map.getTileTypeAt(x, y);
-        if (isPassable(type))
+        if (map.isPassable(type, minion))
         {
             neighbours.Add(new Position2D(x, y));
         }
@@ -287,9 +254,9 @@ public class AStar
         return neighbours;
 	}
 
-	//TODO: return true if position is not blocked
+
 	public bool IsValidMove(Position2D pos){
-        if(isPassable(map.getTileTypeAt(pos.x, pos.y)))
+        if(map.isPassable(map.getTileTypeAt(pos.x, pos.y), minion))
 		    return true;
         return false;
 	}

@@ -10,11 +10,12 @@ public class Minion : MonoBehaviour {
     private float posX;
     private float posY;
     private float tileSize;
-    public bool canCrossMountains = false;
 
-	private Knowledge knowledge;
+
+	public Knowledge knowledge { get; private set; }
 	private Inventory bag;
-
+    private AStar astar;
+    
     private bool isMoving = false;
 
 	public void initMinion (Transform spriteInstance, int posX, int posY, Knowledge knowledge, float tileSize)
@@ -31,31 +32,61 @@ public class Minion : MonoBehaviour {
 
     IEnumerator goToPos(List<Position2D> positions)
     {
-
+        isMoving = true;
         Vector3 startPos = gameObject.transform.position;
         for (int i = 0; i < positions.Count; i++)
         {
             float posChangeY = 0, posChangeX = 0;
             posChangeY = positions[i].y * tileSize;
             posChangeX = positions[i].x * tileSize;
+            posX = positions[i].x;
+            posY = positions[i].y;
             gameObject.transform.position = new Vector3(posChangeX, posChangeY, 0);
-            yield return new WaitForSeconds(1f);
-        }
+            knowledge.discoverTiles((int)posX, (int) posY);
 
+            if(posX == 0 && posY == 0)
+            {
+                posY = 0;
+            }
+
+            yield return new WaitForSeconds(speed);
+        }
+        isMoving = false;
     }
 
     // Use this for initialization
     void Start () {
-        AStar astar = new AStar(GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().map, this);
-        List<Position2D> list;
-        list = astar.pathFindNewTarget(new Position2D((int)posX, (int)posY), new Position2D(10,10));
+        astar = new AStar(GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().map, this);
 
-        StartCoroutine(goToPos(list));
-     
+        knowledge.discoverTiles((int)posX, (int) posY);
+
+        
+        
     }
 	
 	// Update is called once per frame
 	void Update () {
+        if (!isMoving)
+        {
+            List<Position2D> list;
+            list = astar.pathFindNewTarget(new Position2D((int)posX, (int)posY), getFrontierDest());
+            if (list != null)
+            {
+                //TODO will just stop pathfinding if this happens, so fix it
+                StartCoroutine(goToPos(list));
+            }
+        }
+    }
 
+    Position2D getFrontierDest()
+    {
+        Position2D dest = new Position2D(0, 0);
+        Knowledge.Frontier  front = knowledge.findNextFrontier(new Position2D((int)posX, (int)posY));
+
+        if (front != null) {
+            dest = front.pos;
+        }
+
+        return dest;
     }
 }
