@@ -79,4 +79,12 @@ public class Map{
         }
     }
 
+	public void Destroy()
+	{
+		for(int i=0; i<mapSize; i++){
+			for(int j=0; j<mapSize; j++){
+				mapGrid [i, j].Destroy ();
+			}
+		}
+	}
 }
