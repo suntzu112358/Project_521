@@ -8,8 +8,8 @@ public class MapTile {
 	private Resource resource;
 	private TileType type;
 
-	public MapTile(Transform sprite, Resource resource, TileType type){
-		this.spriteInstance = sprite;
+	public MapTile(Transform prefab, Resource resource, TileType type){
+		this.spriteInstance = GameObject.Instantiate(prefab);
 		this.resource = resource;
 		this.type = type;
 	}

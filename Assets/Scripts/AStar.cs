@@ -5,8 +5,6 @@ using UnityEngine;
 public class AStar
 {
     private Map map;
-    private int gridWidth;
-    private int gridHeight;
 
     Position2D startPosition;
     Position2D targetPosition;
@@ -76,9 +74,6 @@ public class AStar
 
 	public AStar(int gridWidth, int gridHeight, Map map, Minion minion)
 	{
-
-		this.gridWidth = gridWidth;
-		this.gridHeight = gridHeight;
         this.map = map;
         this.minion = minion;
 

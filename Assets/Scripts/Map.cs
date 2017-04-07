@@ -27,6 +27,14 @@ public class Map{
 
     public Resource getResource(int x, int y)
     {
+		if (x < 0 || x >= mapSize)
+		{
+			return Resource.Nothing;
+		}
+		if (y < 0 || y >= mapSize)
+		{
+			return Resource.Nothing;
+		}
         return mapGrid[x, y].getResource();
     }
 

@@ -28,14 +28,14 @@ public class ManualMap : MonoBehaviour
 		{
 			for (int j = 0; j < mapSize; j++) 
 			{
-				MapTile plainTile = new MapTile (Instantiate (emptyTile), Resource.Nothing, TileType.Plains);
+				MapTile plainTile = new MapTile (emptyTile, Resource.Nothing, TileType.Plains);
 				map.setTileAt (i,j, plainTile);
 			}
 		}
 
 		for (int j = 0; j < mapSize; j++) 
 		{
-			MapTile waterTile = new MapTile (Instantiate (water), Resource.Nothing, TileType.Water);
+			MapTile waterTile = new MapTile (water, Resource.Nothing, TileType.Water);
             if (j != mapSize/2)
             {
                 map.setTileAt(mapSize/2, j, waterTile);
@@ -62,11 +62,11 @@ public class ManualMap : MonoBehaviour
                     MapTile newTile;
                     if (i == mapSize / 2 && j != mapSize/2)
                     {
-                        newTile = new MapTile(Instantiate(water), Resource.Nothing, TileType.Water);
+                        newTile = new MapTile(water, Resource.Nothing, TileType.Water);
                     }
                     else
                     {
-                        newTile = new MapTile(Instantiate(plains), Resource.Nothing, TileType.Plains);
+                        newTile = new MapTile(plains, Resource.Nothing, TileType.Plains);
                       
                     }
 

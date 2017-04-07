@@ -20,6 +20,11 @@ public class AutoMap : MonoBehaviour
 
 	private float[,] heightTable;
 
+	//A partition of the map based on accessibility. 
+	//We compute this when validating the terrain but it's also useful once we start placing resources so we'll save it here.
+	private List<List<Position2D>> riverSeparatedComponents;
+	private List<Position2D> mainComponent;
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -56,7 +61,6 @@ public class AutoMap : MonoBehaviour
 				//As we get closer to the edge we'll subtract this heightdrop so that the terrain will be island shaped
 				float mapMid = mapSize / 2f;
 				float heightDrop = (Mathf.Abs(mapMid-i) + Mathf.Abs(mapMid-j)) / mapSize;
-				//heightDropFactor = Mathf.Sqrt (heightDropFactor);
 
 				float height = heightMap.GetNoise (tileX, tileY) - heightDrop;
 				float rain = rainMap.GetNoise (tileX, tileY);
@@ -65,23 +69,23 @@ public class AutoMap : MonoBehaviour
 
 				//Set tiles on border of map to water tiles
 				if (i == 0 || j == 0 || i == mapSize - 1 || j == mapSize - 1) {
-					tile = new MapTile (Instantiate (water), Resource.Nothing, TileType.Water);
+					tile = new MapTile (water, Resource.Nothing, TileType.Water);
 				}
 				else if (height <= 0) {
-					tile = new MapTile (Instantiate (water), Resource.Nothing, TileType.Water);
+					tile = new MapTile (water, Resource.Nothing, TileType.Water);
 				} 
 				else if (height < 0.1f) {
-					tile = new MapTile (Instantiate (sand), Resource.Nothing, TileType.Sand);
+					tile = new MapTile (sand, Resource.Nothing, TileType.Sand);
 				} 
 				else if (height < 0.4f) 
 				{
 					if (rain < 0.6f)
-						tile = new MapTile (Instantiate (plains), Resource.Nothing, TileType.Plains);
+						tile = new MapTile (plains, Resource.Nothing, TileType.Plains);
 					else
-						tile = new MapTile (Instantiate (forest), Resource.Nothing, TileType.Forest);
+						tile = new MapTile (forest, Resource.Nothing, TileType.Forest);
 				}
 				else {
-					tile = new MapTile (Instantiate (mountain), Resource.Nothing, TileType.Mountain);
+					tile = new MapTile (mountain, Resource.Nothing, TileType.Mountain);
 					if (rain >= 0.6f)
 						riverStartCandidates.Add (new Position2D (i, j));
 				} 
@@ -92,6 +96,18 @@ public class AutoMap : MonoBehaviour
 
 		//If more than one island is generated, delete smaller ones that aren't reachable from main island
 		deleteExtraIslands();
+
+		//Pick locations for boulders completely randomly 
+		int boulderCount = Random.Range(mapSize*mapSize/100, mapSize*mapSize/50);
+		for (int i = 0; i < boulderCount; i++) {
+			int x = Random.Range (0, mapSize);
+			int y = Random.Range (0, mapSize);
+
+			if (map.getTileTypeAt (x, y) == TileType.Plains || map.getTileTypeAt (x, y) == TileType.Sand) 
+			{
+				map.setTileAt (x, y, new MapTile(boulder, Resource.Nothing, TileType.Boulder));
+			}
+		}
 
 
 		//Randomly pick river start locations. After a location is picked, eliminate other candidates that are too close to it
@@ -150,7 +166,7 @@ public class AutoMap : MonoBehaviour
 			foreach (Position2D nextRiv in river) 
 			{
 				heightTable[nextRiv.x, nextRiv.y] = 0;
-				map.setTileAt(nextRiv.x, nextRiv.y, new MapTile(Instantiate(water), Resource.Nothing, TileType.Water));
+				map.setTileAt(nextRiv.x, nextRiv.y, new MapTile(water, Resource.Nothing, TileType.Water));
 			}
 		}
 	}
@@ -198,7 +214,7 @@ public class AutoMap : MonoBehaviour
 				foreach (Position2D pos in extraIsland) 
 				{
 					heightTable [pos.x, pos.y] = 0;
-					map.setTileAt(pos.x, pos.y, new MapTile(Instantiate(water), Resource.Nothing, TileType.Water));
+					map.setTileAt(pos.x, pos.y, new MapTile(water, Resource.Nothing, TileType.Water));
 				}
 			}
 		}
@@ -241,7 +257,7 @@ public class AutoMap : MonoBehaviour
 
 		//Test if rivers block a large enough portion of the map. (We want our minions to build bridges)
 		//To do so we'll split the area based on accessibility. We'll pass the test if we get at least 2 large components
-		List<List<Position2D>> riverSeparatedComponents = new List<List<Position2D>>();
+		riverSeparatedComponents = new List<List<Position2D>>();
 		for (int i = 0; i < mapSize; i++) 
 		{
 			for (int j = 0; j < mapSize; j++) 
@@ -277,15 +293,47 @@ public class AutoMap : MonoBehaviour
 		{
 			if (component.Count > totalSize / 10)
 				largeComponents++;
-			else if (component.Count > totalSize / 50) {
+			else if (component.Count > totalSize / 50)
 				mediumComponents++;
-			} 
 		}
 
-		if(largeComponents > 1 || (largeComponents == 1 && mediumComponents > 0))
+		//We need at least two components, one of which must be large.
+		if(largeComponents == 0 || (largeComponents + mediumComponents < 2))
+			return false;
+
+
+		//Finally, check that at least one of each tile containing the resources required to build a bridge 
+		//is accessible without crossing a river (forest, plains, Boulder)
+		mainComponent = riverSeparatedComponents [0];
+		for (int i = 1; i < riverSeparatedComponents.Count; i++) {
+			if (mainComponent.Count < riverSeparatedComponents [i].Count) 
+			{
+				mainComponent = riverSeparatedComponents [i];
+			}
+		}
+
+		bool hasForest = false;
+		bool hasBoulder = false;
+		bool hasPlains = false;
+		foreach (Position2D p in mainComponent) 
+		{
+			TileType type = map.getTileTypeAt (p.x, p.y);
+			if (type == TileType.Forest) {
+				hasForest = true;
+			}
+			else if (type == TileType.Boulder) {
+				hasBoulder = true;
+			}
+			else if (type == TileType.Plains) {
+				hasPlains = true;
+			}
+		}
+
+		if (hasForest && hasPlains && hasBoulder)
 			return true;
 		else 
 			return false;
+
 	}
 
 	//Find and return all positions accessible from a given starting position
@@ -332,6 +380,9 @@ public class AutoMap : MonoBehaviour
 							toVisit.Add (n);
 							connectedComponent.Add (n);
 							visited [n.x, n.y] = true;
+						} else {
+							connectedComponent.Add (n);
+							visited [n.x, n.y] = true;
 						}
 						break;
 					case TileType.Mountain:
@@ -339,11 +390,17 @@ public class AutoMap : MonoBehaviour
 							toVisit.Add (n);
 							connectedComponent.Add (n);
 							visited [n.x, n.y] = true;
+						} else {
+							connectedComponent.Add (n);
+							visited [n.x, n.y] = true;
 						}
 						break;
 					case TileType.Water:
 						if (crossWater && map.getTileTypeAt (current.x, current.y) != TileType.Water) {
 							toVisit.Add (n);
+							connectedComponent.Add (n);
+							visited [n.x, n.y] = true;
+						} else {
 							connectedComponent.Add (n);
 							visited [n.x, n.y] = true;
 						}
