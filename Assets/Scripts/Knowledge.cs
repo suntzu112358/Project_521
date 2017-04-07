@@ -6,7 +6,7 @@ public class Knowledge {
 	//TODO have list of resource points and base location
 	private Map map;
 	public bool[,] isRevealedTile;
-    private bool[,] isFrontier;
+    //private bool[,] isFrontier;
     private List<Frontier> frontiers;
     public bool canCrossMountains = false;
 
@@ -23,7 +23,7 @@ public class Knowledge {
         }
         for(int i = 0; i < frontiers.Count; i++)
         {
-            if(frontiers[i].pos.x - curPos.x + frontiers[i].pos.y - curPos.y < minDiff)
+			if(Mathf.Abs(frontiers[i].pos.x - curPos.x) + Mathf.Abs(frontiers[i].pos.y - curPos.y) < minDiff)
             {
                 minIndex = i;
                 minDiff = frontiers[i].pos.x - curPos.x + frontiers[i].pos.y - curPos.y;
@@ -99,10 +99,10 @@ public class Knowledge {
 
     }
 
-	public Knowledge(Map map){
+	public Knowledge(Map map)
+	{
 		this.map = map;
 		isRevealedTile = new bool[map.mapSize, map.mapSize];
-        isFrontier = new bool[map.mapSize, map.mapSize];
 
         frontiers = new List<Frontier>();
 
@@ -111,191 +111,92 @@ public class Knowledge {
             for (int j = 0; j < map.mapSize; j++)
             {
                 isRevealedTile[i, j] = false;
-                isFrontier[i, j] = false;
             }
         }
 	}
 
-    public void removeFrontier(int x, int y)
+    private void removeFrontier(int x, int y)
     {
-        isFrontier[x , y] = false;
-        Position2D temp = new Position2D(x, y) ;
+        Position2D temp = new Position2D(x, y);
         for(int i = 0; i < frontiers.Count; i++)
         {
-            
             if(frontiers[i].pos == temp)
             {
-                frontiers.Remove(frontiers[i]);
+                frontiers.RemoveAt(i);
                 return;
             }
         }
     }
 
+	private bool isFrontier(int x, int y)
+	{
+		List<Position2D> neighbors = new List<Position2D> ();
+		neighbors.Add (new Position2D (x+1, y));
+		neighbors.Add (new Position2D (x-1, y));
+		neighbors.Add (new Position2D (x, y+1));
+		neighbors.Add (new Position2D (x, y-1));
+
+		foreach (Position2D p in neighbors) 
+		{
+			if (p.x >= 0 && p.x < map.mapSize && p.y >= 0 && p.y < map.mapSize) 
+			{
+				if (!isRevealedTile [p.x, p.y])
+					return true;
+			}
+		}
+		return false;
+	}
+
     public void addFrontier(Frontier f)
     {
-        if (f.probability > 0 && map.isPassable(map.getTileTypeAt(f.pos.x, f.pos.y), canCrossMountains))
-        {
-            frontiers.Add(f);
-            isFrontier[f.pos.x, f.pos.y] = true;
-        }   
+		if (isFrontier (f.pos.x, f.pos.y)) {
+			if (f.probability > 0 && map.isPassable (map.getTileTypeAt (f.pos.x, f.pos.y), canCrossMountains)) {
+				frontiers.Add (f);
+			}  
+		}
     }
 
 	public void discoverTiles(int x, int y){
-        if (isRevealedTile[x, y])
+		if (isRevealedTile[x, y] && !isFrontier(x,y))
         {
             removeFrontier(x, y);
-        }else
-        {
-            isRevealedTile[x, y] = true;
         }
 
-        for(int i = 1; i < 3; i++)
-        {
-            if (i == 2)
-            {
-                if (x + i < map.mapSize)
-                {
-                    if (!isRevealedTile[x + i, y])
-                    {
-                        isRevealedTile[x + i, y] = true;
-                        addFrontier(new Frontier(new Position2D(x + i, y), map.mapSize, true, true));
-                    }else if (isFrontier[x + i, y])
-                    {
-                        //removeFrontier(x + i, y);
-                    }
-                   
+        isRevealedTile[x, y] = true;
+        
 
-                }
-                if (y + i < map.mapSize)
-                {
-                    if (!isRevealedTile[x, y + i])
-                    {
-                        isRevealedTile[x, y + i] = true;
-                        addFrontier(new Frontier(new Position2D(x, y + i), map.mapSize, true, true));
-                    }
-                    else if (isFrontier[x , y + i])
-                    {
-                        //removeFrontier(x , y+1);
-                    }
+		List<Position2D> visibleNeighbors = new List<Position2D> ();
+		visibleNeighbors.Add (new Position2D (x+1, y));
+		visibleNeighbors.Add (new Position2D (x-1, y));
+		visibleNeighbors.Add (new Position2D (x, y+1));
+		visibleNeighbors.Add (new Position2D (x, y-1));
+		visibleNeighbors.Add (new Position2D (x+2, y));
+		visibleNeighbors.Add (new Position2D (x-2, y));
+		visibleNeighbors.Add (new Position2D (x, y+2));
+		visibleNeighbors.Add (new Position2D (x, y-2));
+		visibleNeighbors.Add (new Position2D (x+1, y+1));
+		visibleNeighbors.Add (new Position2D (x+1, y-1));
+		visibleNeighbors.Add (new Position2D (x-1, y+1));
+		visibleNeighbors.Add (new Position2D (x-1, y-1));
 
-                }
-                if (x - i >= 0)
-                {
-                    if (!isRevealedTile[x - i, y])
-                    {
-                        isRevealedTile[x - i, y] = true;
-                        addFrontier(new Frontier(new Position2D(x - i, y), map.mapSize, true, false));
-                    }
-                    else if (isFrontier[x - i, y])
-                    {
-                        //removeFrontier(x - i, y);
-                    }
+		foreach (Position2D p in visibleNeighbors) 
+		{
+			if (p.x >= 0 && p.x < map.mapSize && p.y >= 0 && p.y < map.mapSize) 
+			{
+				if (!isRevealedTile[p.x, p.y])
+				{
+					isRevealedTile[p.x, p.y] = true;
 
-                }
-                if (y - i >= 0)
-                {
-                    if (!isRevealedTile[x, y - i])
-                    {
-                        isRevealedTile[x, y - i] = true;
-                        addFrontier(new Frontier(new Position2D(x, y - i), map.mapSize, false, true));
-                    }
-                    else if (isFrontier[x, y - i])
-                    {
-                        //removeFrontier(x, y - 1);
-                    }
-                }
-            }
-            else
-            {
-                if (x + i < map.mapSize)
-                {
-                    isRevealedTile[x + i, y] = true;
-                    if (isFrontier[x + i, y])
-                    {
-//removeFrontier(x + i, y);
-                    }
-                }
-                if (y + i < map.mapSize)
-                {
-                    isRevealedTile[x, y + i] = true;
-                    if (isFrontier[x, y + i])
-                    {
-                        //removeFrontier(x, y + 1);
-                    }
-                }
-                if (x - i >= 0)
-                {
-                    isRevealedTile[x - i, y] = true;
-                    if (isFrontier[x - i, y])
-                    {
-                        //removeFrontier(x - i, y);
-                    }
-                }
-                if (y - i >= 0)
-                {
-                    isRevealedTile[x, y - i] = true;
-                    if (isFrontier[x, y - i])
-                    {
-                        //removeFrontier(x, y - 1);
-                    }
-                }
-            }
-        }
-        if(x + 1 < map.mapSize)
-        {
-            if(y + 1 < map.mapSize)
-            {
-                if (!isRevealedTile[x + 1, y + 1])
-                {
-                    isRevealedTile[x + 1, y + 1] = true;
-                    addFrontier(new Frontier(new Position2D(x + 1, y + 1), map.mapSize, true, true));
-                }
-                else if (isFrontier[x + 1, y + 1])
-                {
-                    //removeFrontier(x + 1, y + 1);
-                }
-            }
-            if (y - 1 >= 0)
-            {
-                if (!isRevealedTile[x + 1, y - 1])
-                {
-                    isRevealedTile[x + 1, y - 1] = true;
-                    addFrontier(new Frontier(new Position2D(x + 1, y - 1), map.mapSize, false, true));
-                }
-                else if (isFrontier[x + 1, y - 1])
-                {
-                    //removeFrontier(x + 1, y - 1);
-                }
-            }
-        }
-        if (x - 1 >= 0)
-        {
-            if (y + 1 < map.mapSize)
-            {
-                if (!isRevealedTile[x - 1, y + 1])
-                {
-                    isRevealedTile[x - 1, y + 1] = true;
-                    addFrontier(new Frontier(new Position2D(x - 1, y + 1), map.mapSize, true, false));
-                }
-                else if (isFrontier[x - 1, y + 1])
-                {
-                    //removeFrontier(x - 1, y + 1);
-                }
-            }
-            if (y - 1 >= 0)
-            {
-                if (!isRevealedTile[x - 1, y - 1])
-                {
-                    isRevealedTile[x - 1, y - 1] = true;
-                    addFrontier(new Frontier(new Position2D(x - 1, y - 1), map.mapSize, false, false));
-                }
-                else if (isFrontier[x - 1, y - 1])
-                {
-                    //removeFrontier(x - 1, y - 1);
-                }
-            }
-        }
-
+					bool north = p.y > y;
+					bool east = p.x > x;
+					addFrontier(new Frontier(new Position2D(p.x, p.y), map.mapSize, north, east));
+				}
+				else if (!isFrontier(p.x, p.y))
+				{
+					removeFrontier(p.x, p.y);
+				}
+			}	
+		}
     }
 
 	//GetTileInfo
