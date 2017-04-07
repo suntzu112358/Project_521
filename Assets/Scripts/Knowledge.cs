@@ -8,7 +8,7 @@ public class Knowledge {
 	public bool[,] isRevealedTile;
     //private bool[,] isFrontier;
     private List<Frontier> frontiers;
-    public bool canCrossMountains = false;
+    public bool canCrossMountains = false; //use a reference NOT a primitive type TODO
 
     public Frontier findNextFrontier(Position2D curPos)
     {
@@ -17,16 +17,20 @@ public class Knowledge {
         int minDiff = map.mapSize;
         int maxProbIndex = 0;
         float maxProb = 0;
+        int temp;
+
         if(frontiers.Count == 0)
         {
             Debug.Log(frontiers);
         }
         for(int i = 0; i < frontiers.Count; i++)
         {
-			if(Mathf.Abs(frontiers[i].pos.x - curPos.x) + Mathf.Abs(frontiers[i].pos.y - curPos.y) < minDiff)
+
+            temp = Mathf.Abs(frontiers[i].pos.x - curPos.x) + Mathf.Abs(frontiers[i].pos.y - curPos.y);
+            if (temp < minDiff)
             {
                 minIndex = i;
-                minDiff = frontiers[i].pos.x - curPos.x + frontiers[i].pos.y - curPos.y;
+                minDiff = temp;
             }
             if(maxProb < frontiers[i].probability)
             {

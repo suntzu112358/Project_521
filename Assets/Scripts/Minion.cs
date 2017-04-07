@@ -9,11 +9,12 @@ public class Minion : MonoBehaviour {
     private bool isInitialized = false;
     private float posX;
     private float posY;
+    public Position2D agentPosState;
     private float tileSize;
 
 
-	public Knowledge knowledge { get; private set; }
-	private Inventory bag;
+	public Knowledge agentInfo { get; private set; }
+	private Inventory agentBagState;
     private AStar astar;
     
     private bool isMoving = false;
@@ -23,8 +24,8 @@ public class Minion : MonoBehaviour {
         this.spriteInstance = spriteInstance;
 		this.posX = posX;
 		this.posY = posY;
-		this.bag = new Inventory ();
-		this.knowledge = knowledge;
+		this.agentBagState = new Inventory (true);
+		this.agentInfo = knowledge;
 		this.isInitialized = true;
         this.tileSize = tileSize;
         spriteInstance.position = new Vector3(posX * tileSize, posY * tileSize, -1);
@@ -42,7 +43,7 @@ public class Minion : MonoBehaviour {
             posX = positions[i].x;
             posY = positions[i].y;
             gameObject.transform.position = new Vector3(posChangeX, posChangeY, 0);
-            knowledge.discoverTiles((int)posX, (int) posY);
+            agentInfo.discoverTiles((int)posX, (int) posY);
 
             if(posX == 0 && posY == 0)
             {
@@ -58,7 +59,7 @@ public class Minion : MonoBehaviour {
     void Start () {
         astar = new AStar(GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().map, this);
 
-        knowledge.discoverTiles((int)posX, (int) posY);
+        agentInfo.discoverTiles((int)posX, (int) posY);
 
         
         
@@ -81,7 +82,7 @@ public class Minion : MonoBehaviour {
     Position2D getFrontierDest()
     {
         Position2D dest = new Position2D(0, 0);
-        Knowledge.Frontier  front = knowledge.findNextFrontier(new Position2D((int)posX, (int)posY));
+        Knowledge.Frontier  front = agentInfo.findNextFrontier(new Position2D((int)posX, (int)posY));
 
         if (front != null) {
             dest = front.pos;
