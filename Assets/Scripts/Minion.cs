@@ -2,92 +2,113 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Minion : MonoBehaviour {
+public class Minion {
 
-    private Transform spriteInstance;
     private const float speed = 0.1f;
     private bool isInitialized = false;
-    private float posX;
-    private float posY;
-    public Position2D agentPosState;
+    private int posX;
+    private int posY;
     private float tileSize;
+
+    private List<Position2D> currentPath;
 
 
 	public Knowledge agentInfo { get; private set; }
-	private Inventory agentBagState;
+	private Inventory agentBag;
     private AStar astar;
     
     private bool isMoving = false;
 
-	public void initMinion (Transform spriteInstance, int posX, int posY, Knowledge knowledge, float tileSize)
+	public Minion ( int posX, int posY, Map map, float tileSize)
 	{
-        this.spriteInstance = spriteInstance;
 		this.posX = posX;
 		this.posY = posY;
-		this.agentBagState = new Inventory (true);
-		this.agentInfo = knowledge;
+		this.agentBag = new Inventory (true);
+		this.agentInfo = new Knowledge(map);
 		this.isInitialized = true;
         this.tileSize = tileSize;
-        spriteInstance.position = new Vector3(posX * tileSize, posY * tileSize, -1);
-	}
+        currentPath = new List<Position2D>();
 
-    IEnumerator goToPos(List<Position2D> positions)
-    {
-        isMoving = true;
-        Vector3 startPos = gameObject.transform.position;
-        for (int i = 0; i < positions.Count; i++)
-        {
-            float posChangeY = 0, posChangeX = 0;
-            posChangeY = positions[i].y * tileSize;
-            posChangeX = positions[i].x * tileSize;
-            posX = positions[i].x;
-            posY = positions[i].y;
-            gameObject.transform.position = new Vector3(posChangeX, posChangeY, 0);
-            agentInfo.discoverTiles((int)posX, (int) posY);
-
-            if(posX == 0 && posY == 0)
-            {
-                posY = 0;
-            }
-
-            yield return new WaitForSeconds(speed);
-        }
-        isMoving = false;
+        astar = new AStar(map.mapSize, map.mapSize, map);
+        agentInfo.discoverTiles(this.posX, this.posY);
     }
 
-    // Use this for initialization
-    void Start () {
-        astar = new AStar(GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().mapSize, GameObject.FindGameObjectWithTag("Map").GetComponent<ManualMap>().map, this);
+    
+    //IEnumerator walkToPos(List<Position2D> positions)
+    //{
+    //    isMoving = true;
 
-        agentInfo.discoverTiles((int)posX, (int) posY);
+    //    for (int i = 0; i < positions.Count; i++)
+    //    {
+    //        float posChangeY = 0, posChangeX = 0;
+    //        posChangeY = positions[i].y * tileSize;
+    //        posChangeX = positions[i].x * tileSize;
+    //        posX = positions[i].x;
+    //        posY = positions[i].y;
+         
+    //        agentInfo.discoverTiles((int)posX, (int) posY);
 
-        
-        
-    }
+    //        if(posX == 0 && posY == 0)
+    //        {
+    //            posY = 0;
+    //        }
+
+    //        yield return new WaitForSeconds(speed);
+    //    }
+    //    isMoving = false;
+    //}
+
+
+
+
 	
 	// Update is called once per frame
-	void Update () {
+	public void goToPos (Position2D targetPos) {
         if (!isMoving)
         {
-            List<Position2D> list;
-            list = astar.pathFindNewTarget(new Position2D((int)posX, (int)posY), getFrontierDest());
-            if (list != null)
+            currentPath = astar.pathFindNewTarget(new Position2D(posX, posY), targetPos, canCrossMountains());
+            isMoving = true;
+        }
+    }
+
+    public void takeStep()
+    {
+        if (isMoving)
+        {
+            Position2D nextPos = currentPath[0];
+            currentPath.RemoveAt(0);
+            posX = nextPos.x;
+            posY = nextPos.y;
+
+            agentInfo.discoverTiles(posX, posY);
+
+            if (currentPath.Count == 0)
             {
-                //TODO will just stop pathfinding if this happens, so fix it
-                StartCoroutine(goToPos(list));
+                isMoving = false;
             }
         }
     }
 
-    Position2D getFrontierDest()
+    //TODO Delete
+    //Position2D getFrontierDest()
+    //{
+    //    Position2D dest = new Position2D(0, 0);
+    //    Knowledge.Frontier  front = agentInfo.findNextFrontier(new Position2D(posX, posY));
+
+    //    if (front != null) {
+    //        dest = front.pos;
+    //    }
+
+    //    return dest;
+    //}
+
+    public Position2D getCurPos()
     {
-        Position2D dest = new Position2D(0, 0);
-        Knowledge.Frontier  front = agentInfo.findNextFrontier(new Position2D((int)posX, (int)posY));
+        return new Position2D(posX, posY);
+    }
 
-        if (front != null) {
-            dest = front.pos;
-        }
-
-        return dest;
+    public bool canCrossMountains()
+    {
+        return agentBag.hasResource(Resource.MontainKit);
     }
 }

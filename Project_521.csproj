@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.0f3</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -84,9 +82,14 @@
     <Compile Include="Assets\Scripts\AI\GOAP\GoapPlanner.cs" />
     <Compile Include="Assets\Scripts\AI\GOAP\IGoap.cs" />
     <Compile Include="Assets\Scripts\AStar.cs" />
+    <Compile Include="Assets\Scripts\Action.cs" />
+    <Compile Include="Assets\Scripts\Agent.cs" />
     <Compile Include="Assets\Scripts\AutoMap.cs" />
     <Compile Include="Assets\Scripts\Base.cs" />
     <Compile Include="Assets\Scripts\CraftingRecipe.cs" />
+    <Compile Include="Assets\Scripts\Explore.cs" />
+    <Compile Include="Assets\Scripts\Game.cs" />
+    <Compile Include="Assets\Scripts\Goal.cs" />
     <Compile Include="Assets\Scripts\Inventory.cs" />
     <Compile Include="Assets\Scripts\Knowledge.cs" />
     <Compile Include="Assets\Scripts\ManualMap.cs" />
@@ -96,6 +99,7 @@
     <Compile Include="Assets\Scripts\NoiseGenerator.cs" />
     <Compile Include="Assets\Scripts\Position2D.cs" />
     <Compile Include="Assets\Scripts\Resource.cs" />
+    <Compile Include="Assets\Scripts\State.cs" />
     <Compile Include="Assets\Scripts\TileType.cs" />
   </ItemGroup>
   <ItemGroup>

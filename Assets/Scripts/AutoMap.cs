@@ -14,6 +14,8 @@ public class AutoMap
 
 	private float[,] heightTable;
 
+    Position2D basePosition;
+
 	//A partition of the map based on accessibility. 
 	//We compute this when validating the terrain but it's also useful once we start placing resources so we'll save it here.
 	private List<List<Position2D>> riverSeparatedComponents;
@@ -34,10 +36,6 @@ public class AutoMap
 		}
 
 		PlaceResources ();
-		while (!ValidateResources()) {
-			map.RemoveAllResources ();
-			PlaceResources ();
-		}
 
 		return map;
 	}
@@ -466,7 +464,7 @@ public class AutoMap
 			}
 		}
 
-		Position2D basePosition = baseSpots[Random.Range(0, baseSpots.Count)];
+		basePosition = baseSpots[Random.Range(0, baseSpots.Count)];
 		Position2D stonePosition = stoneSpots[Random.Range(0, stoneSpots.Count)];
 		Position2D woodPosition = woodSpots[Random.Range(0, woodSpots.Count)];
 		Position2D grassPosition = grassSpots[Random.Range(0, grassSpots.Count)];
@@ -565,11 +563,25 @@ public class AutoMap
 		}
 			
 		//Add Wind Bottle
-		Position2D bottlePos = bottleSpots [Random.Range (0, sheepSpots.Count)];
+		Position2D bottlePos = bottleSpots [Random.Range (0, bottleSpots.Count)];
 		map.AddResource (bottlePos.x, bottlePos.y, Resource.WindBottle);
 	}
 
-	private bool ValidateResources(){
-		return true;
-	}
+    public List<Position2D> GetMinionPositions(int minionCount)
+    {
+        List<Position2D> minionList = new List<Position2D>();
+
+        Position2D upPos = new Position2D(basePosition.x, basePosition.y + 1);
+        Position2D downPos = new Position2D(basePosition.x, basePosition.y - 1);
+
+        if (map.getTileTypeAt(upPos.x, upPos.y) != TileType.Water)
+        {
+            minionList.Add( upPos);
+        }
+        else
+            minionList.Add(downPos);
+
+        return minionList;
+    }
+
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 //NOTE this class will function as a singleton
-class Base
+public class Base
 {
     Inventory worldState;
     Knowledge worldInfo;

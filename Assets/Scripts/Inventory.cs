@@ -7,28 +7,80 @@ public class Inventory {
 	private Dictionary<Resource, int> items;
     private const int limit = 10;
     private int freeSpace = 10;
-    private bool isAgent;
+    private bool isMinionAgent;
 
 
-    public Inventory(bool isAgent)
+    public Inventory(bool isMinionAgent)
     {
-        this.isAgent = isAgent;
+        this.isMinionAgent = isMinionAgent;
+        items = new Dictionary<Resource, int>();
     }
 
-	public void AddItem(Resource res){
+	public void addItem(Resource res){
         int quantity = 1;
-        if (isSpace() || !isAgent)
+        int temp;
+
+            
+        if (isSpace() || !isMinionAgent)
         {
             if (items.ContainsKey(res))
             {
                 items.TryGetValue(res, out quantity);
-                quantity++;
+                temp = (int)quantity;
+                temp++;
+                quantity = temp;
                 items.Remove(res);
             }
             items.Add(res, quantity);
             reduceInventorySpace();
         }
+       
 	}
+
+    public Resource removeItem(Resource res)
+    {
+        int quantity = 1;
+        int temp = 0;
+        Resource rtnVal = Resource.Nothing;
+
+        if (isSpace() || !isMinionAgent)
+        {
+            if (items.ContainsKey(res))
+            {
+                items.TryGetValue(res, out quantity);
+                temp = (int)quantity;
+                temp--;
+                quantity = temp;
+                items.Remove(res);
+                rtnVal = res;
+            }
+            if (temp == 0)
+            {
+                items.Add(res, quantity);
+                increaseInventorySpace();
+            }
+        }
+        
+
+        return rtnVal;
+    }
+
+    //TOSO num of resources
+    public bool hasResource(Resource res)
+    {
+        int quantity;
+
+        if (items.ContainsKey(res))
+        {
+            items.TryGetValue(res, out quantity);
+            if(quantity > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public bool isSpace()
     {
@@ -39,6 +91,16 @@ public class Inventory {
 
         return false;
     }
+
+    public bool isEmpty()
+    {
+        if(freeSpace == limit)
+        {
+            return true;
+        }
+        return false;
+    }
+
     private void reduceInventorySpace()
     {
         freeSpace--;
@@ -49,7 +111,17 @@ public class Inventory {
         
     }
 
-	public bool BuildRecipe(CraftingRecipe r){
+    private void increaseInventorySpace()
+    {
+        freeSpace++;
+        if (freeSpace > limit)
+        {
+            freeSpace = limit;
+        }
+
+    }
+
+    public bool BuildRecipe(CraftingRecipe r){
 		return true;
 	}
 }

@@ -5,8 +5,11 @@ using UnityEngine;
 public class Game : MonoBehaviour 
 {
 	public int mapSize;
-	public int minionCount;
+	private int minionCount = 1;
+    private float timeStep = 0.1f;
 	private float tileSize;
+
+    private bool gameOver = false;
 
 	public Transform waterPrefab;
 	public Transform forestPrefab;
@@ -17,23 +20,37 @@ public class Game : MonoBehaviour
 	public Transform basePrefab;
 	public Transform snowyMountainPrefab;
 
+    public Transform minionPrefab;
+
 	private AutoMap mapGenerator;
 	private Map map;
 	private Base homeBase;
-	//private Minion[] minions;
+	private Minion[] minions;
 
 	private Transform[,] tileSprites;
+    private Transform[] minionSprites;
 
 	private const int terrainDepth = 1;
 	private const int resourceDepth = 0;
 	private const int minionDepth = -1;
 
-	// Use this for initialization
-	void Start () 
+    private Explore explore;
+
+    // Use this for initialization
+    void Start () 
 	{
 		mapGenerator = new AutoMap (mapSize);
 		map = mapGenerator.CreateMap ();
-		//minions = new Minion[minionCount];
+
+		minions = new Minion[minionCount];
+        minionSprites = new Transform[minionCount];
+        List<Position2D> minionPosList = mapGenerator.GetMinionPositions(minionCount);
+        for(int i = 0; i < minionCount; i++)
+        {
+            minions[i] = new Minion(minionPosList[i].x, minionPosList[i].y, map, tileSize);
+            minionSprites[i] = Instantiate(minionPrefab);
+            minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, terrainDepth);
+        }
 
 		Bounds tileBounds = waterPrefab.GetComponent<Renderer> ().bounds;
 		tileSize = tileBounds.max.x - tileBounds.min.x;
@@ -92,13 +109,33 @@ public class Game : MonoBehaviour
 				}
 			}
 		}
+        explore = new Explore(null, null, null, null);
 
 
-	}
+
+
+        StartCoroutine(MoveMinions());
+    }
 	
 	// Update is called once per frame
 	void Update () 
 	{
 		
 	}
+
+
+    IEnumerator MoveMinions()
+    {
+        while (!gameOver)
+        {
+            for (int i = 0; i < minionCount; i++)
+            {
+                minions[i].takeStep();
+                minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, terrainDepth);
+                explore.doAction(minions[i]);
+            }
+
+            yield return new WaitForSeconds(timeStep);
+        }
+    }
 }

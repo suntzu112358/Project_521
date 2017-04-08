@@ -9,7 +9,7 @@ public class AStar
     Position2D startPosition;
     Position2D targetPosition;
 
-    Minion minion;
+    bool canCrossMountains = false;
 
     //space-time array being searched for a path
     private AStarNode[,] AStarGrid;
@@ -72,10 +72,9 @@ public class AStar
 	}
 
 
-	public AStar(int gridWidth, int gridHeight, Map map, Minion minion)
+	public AStar(int gridWidth, int gridHeight, Map map)
 	{
         this.map = map;
-        this.minion = minion;
 
 		AStarGrid = new AStarNode[gridWidth, gridHeight];
 		for (int i = 0; i < gridWidth; i++)
@@ -86,8 +85,9 @@ public class AStar
 	}
 
 	//Starts pathfinding towards a new target
-	public List<Position2D> pathFindNewTarget(Position2D current, Position2D target)
+	public List<Position2D> pathFindNewTarget(Position2D current, Position2D target, bool canCrossMountains)
 	{
+        this.canCrossMountains = canCrossMountains;
 		this.startPosition = current;
 		this.targetPosition = target;
 
@@ -217,14 +217,14 @@ public class AStar
 
         x++;
         type = map.getTileTypeAt(x, y);
-        if (map.isPassable(type, minion))
+        if (map.isPassable(type, canCrossMountains))
         {
             neighbours.Add(new Position2D(x, y));
         }
 
         x -= 2;
         type = map.getTileTypeAt(x, y);
-        if (map.isPassable(type, minion))
+        if (map.isPassable(type, canCrossMountains))
         {
             neighbours.Add(new Position2D(x, y));
         }
@@ -232,14 +232,14 @@ public class AStar
         x = pos.x;
         y++;
         type = map.getTileTypeAt(x, y);
-        if (map.isPassable(type, minion))
+        if (map.isPassable(type, canCrossMountains))
         {
             neighbours.Add(new Position2D(x, y));
         }
 
         y -= 2;
         type = map.getTileTypeAt(x, y);
-        if (map.isPassable(type, minion))
+        if (map.isPassable(type, canCrossMountains))
         {
             neighbours.Add(new Position2D(x, y));
         }
@@ -251,7 +251,7 @@ public class AStar
 
 
 	public bool IsValidMove(Position2D pos){
-        if(map.isPassable(map.getTileTypeAt(pos.x, pos.y), minion))
+        if(map.isPassable(map.getTileTypeAt(pos.x, pos.y), canCrossMountains))
 		    return true;
         return false;
 	}

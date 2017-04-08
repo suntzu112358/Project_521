@@ -4,63 +4,17 @@ using UnityEngine;
 
 public class Knowledge {
 	//TODO have list of resource points and base location
-	private Map map;
+	public Map map { get; private set; }
 	public bool[,] isRevealedTile;
-    //private bool[,] isFrontier;
-    private List<Frontier> frontiers;
-    public bool canCrossMountains = false; //use a reference NOT a primitive type TODO
 
-    public Frontier findNextFrontier(Position2D curPos)
-    {
-        Frontier newFrontier;
-        int minIndex = 0;
-        int minDiff = map.mapSize;
-        int maxProbIndex = 0;
-        float maxProb = 0;
-        int temp;
+    Dictionary<State, bool> curAgentState;
 
-        if(frontiers.Count == 0)
-        {
-            Debug.Log(frontiers);
-        }
-        for(int i = 0; i < frontiers.Count; i++)
-        {
+    public List<Frontier> frontiers { get; private set; }
+    public List<Frontier> riverFrontiers { get; private set; }
+    public bool canCrossMountains = false; //use a reference NOT a primitive type TODO or rather a functoin calls
 
-            temp = Mathf.Abs(frontiers[i].pos.x - curPos.x) + Mathf.Abs(frontiers[i].pos.y - curPos.y);
-            if (temp < minDiff)
-            {
-                minIndex = i;
-                minDiff = temp;
-            }
-            if(maxProb < frontiers[i].probability)
-            {
-                maxProb = frontiers[i].probability;
-                maxProbIndex = i;
-            }
-        }
-
-       //  newFrontier = frontiers[minIndex];
-        //newFrontier = frontiers[maxProbIndex];
-        //Note this is one way of making it random, not sure if it's useful
-   
-        if (minIndex == maxProbIndex)
-        {
-            newFrontier = frontiers[maxProbIndex];
-        }
-        else if (Random.Range(0f, 1f) < maxProb)
-        {
-            newFrontier = frontiers[maxProbIndex];
-        }
-        else
-        {
-            newFrontier = frontiers[minIndex];
-        }
-     
-   
-
-
-        return newFrontier;
-    }
+    private AStar pathFinder;
+    
 
     public class Frontier
     {
@@ -109,6 +63,7 @@ public class Knowledge {
 		isRevealedTile = new bool[map.mapSize, map.mapSize];
 
         frontiers = new List<Frontier>();
+        riverFrontiers = new List<Frontier>();
 
         for (int i = 0; i < map.mapSize; i++)
         {
@@ -117,6 +72,11 @@ public class Knowledge {
                 isRevealedTile[i, j] = false;
             }
         }
+
+
+        this.curAgentState = new Dictionary<State, bool>();
+        pathFinder = new AStar(map.mapSize, map.mapSize, map);
+
 	}
 
     private void removeFrontier(int x, int y)
@@ -151,11 +111,14 @@ public class Knowledge {
 		return false;
 	}
 
-    public void addFrontier(Frontier f)
+    public void addFrontier(Frontier f, bool blockedByRiver)
     {
 		if (isFrontier (f.pos.x, f.pos.y)) {
 			if (f.probability > 0 && map.isPassable (map.getTileTypeAt (f.pos.x, f.pos.y), canCrossMountains)) {
-				frontiers.Add (f);
+                if (!blockedByRiver)
+                    frontiers.Add(f);
+                else
+                    riverFrontiers.Add(f);
 			}  
 		}
     }
@@ -187,13 +150,29 @@ public class Knowledge {
 		{
 			if (p.x >= 0 && p.x < map.mapSize && p.y >= 0 && p.y < map.mapSize) 
 			{
-				if (!isRevealedTile[p.x, p.y])
-				{
-					isRevealedTile[p.x, p.y] = true;
+                if (!isRevealedTile[p.x, p.y])
+                {
+                    isRevealedTile[p.x, p.y] = true;
 
-					bool north = p.y > y;
+                    bool blockedByRiver = false;
+                    //Check if tile is accessible or blocked by river
+                    if (Mathf.Abs(p.x - x) > 1 || Mathf.Abs(p.y - y) > 1)
+                    { 
+                        int midTileX = (p.x + x) / 2;
+                        int midTileY = (p.y + y) / 2;
+
+                        if(map.getTileTypeAt(midTileX, midTileY) == TileType.Water)
+                        {
+                            //Might be blocked by a river, do A* to see if it is accessible
+                            List<Position2D> pathAttempt = pathFinder.pathFindNewTarget(new Position2D(x, y), new Position2D(p.x, p.y), canCrossMountains);
+                            if (pathAttempt == null)
+                                blockedByRiver = true;
+                        }
+                    }
+
+                    bool north = p.y > y;
 					bool east = p.x > x;
-					addFrontier(new Frontier(new Position2D(p.x, p.y), map.mapSize, north, east));
+					addFrontier(new Frontier(new Position2D(p.x, p.y), map.mapSize, north, east), blockedByRiver);
 				}
 				else if (!isFrontier(p.x, p.y))
 				{
@@ -203,5 +182,16 @@ public class Knowledge {
 		}
     }
 
+    public bool getStateInfo(State state)
+    {
+        bool val = false ;
+
+        if (curAgentState.ContainsKey(state))
+        {
+            curAgentState.TryGetValue(state, out val);
+        }
+
+        return val;
+    }
 	//GetTileInfo
 }
