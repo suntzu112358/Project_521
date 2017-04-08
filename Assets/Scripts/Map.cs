@@ -5,12 +5,7 @@ using UnityEngine;
 public class Map{
 
 	public int mapSize { get; private set;}
-	private float tileSize;
 	private MapTile[,] mapGrid;
-
-	private const int terrainDepth = 1;
-	private const int resourceDepth = 0;
-    private const int minionDepth = -1;
 
     public TileType getTileTypeAt(int x, int y)
     {
@@ -38,20 +33,30 @@ public class Map{
         return mapGrid[x, y].getResource();
     }
 
-    public void setTileAt(int x, int y, MapTile newTile)
+	public void AddResource(int x, int y, Resource r)
 	{
-		if (mapGrid [x, y] != null) {
-			mapGrid [x, y].Destroy ();
-		}
-
-		mapGrid[x, y] = newTile;
-		newTile.setPosition (new Vector3 (x*tileSize, y*tileSize, terrainDepth));
+		mapGrid [x, y].addResource (r);
 	}
 
-	public Map(int mapSize, float tileSize)
+	public void RemoveAllResources()
+	{
+		for(int i=0; i<mapSize; i++)
+		{
+			for(int j=0; j<mapSize; j++)
+			{
+				mapGrid [i, j].removeResource ();
+			}
+		}
+	}
+
+    public void setTileAt(int x, int y, MapTile newTile)
+	{
+		mapGrid[x, y] = newTile;
+	}
+
+	public Map(int mapSize)
 	{
 		this.mapSize = mapSize;
-		this.tileSize = tileSize;
 		mapGrid = new MapTile[mapSize, mapSize];
 	}
 
@@ -86,13 +91,4 @@ public class Map{
             return false;
         }
     }
-
-	public void Destroy()
-	{
-		for(int i=0; i<mapSize; i++){
-			for(int j=0; j<mapSize; j++){
-				mapGrid [i, j].Destroy ();
-			}
-		}
-	}
 }

@@ -22,20 +22,20 @@ public class ManualMap : MonoBehaviour
 	{
 		//Assume all tiles are same sized squares
 		Bounds tileBounds = water.GetComponent<Renderer> ().bounds;
-		map = new Map (mapSize, tileBounds.max.x - tileBounds.min.x);
+		map = new Map (mapSize);
 
 		for (int i = 0; i < mapSize; i++) 
 		{
 			for (int j = 0; j < mapSize; j++) 
 			{
-				MapTile plainTile = new MapTile (emptyTile, Resource.Nothing, TileType.Plains);
+				MapTile plainTile = new MapTile (Resource.Nothing, TileType.Plains);
 				map.setTileAt (i,j, plainTile);
 			}
 		}
 
 		for (int j = 0; j < mapSize; j++) 
 		{
-			MapTile waterTile = new MapTile (water, Resource.Nothing, TileType.Water);
+			MapTile waterTile = new MapTile (Resource.Nothing, TileType.Water);
             if (j != mapSize/2)
             {
                 map.setTileAt(mapSize/2, j, waterTile);
@@ -47,7 +47,7 @@ public class ManualMap : MonoBehaviour
         Minion minionScript = newMinion.GetComponent<Minion>();
         minionScript.initMinion(newMinion, 1, 1, new Knowledge(map), tileBounds.max.x - tileBounds.min.x);
         minions.Add(minionScript);
-        k = minionScript.knowledge;
+		k = minionScript.agentInfo;
 
 	}
 	
@@ -62,11 +62,11 @@ public class ManualMap : MonoBehaviour
                     MapTile newTile;
                     if (i == mapSize / 2 && j != mapSize/2)
                     {
-                        newTile = new MapTile(water, Resource.Nothing, TileType.Water);
+                        newTile = new MapTile(Resource.Nothing, TileType.Water);
                     }
                     else
                     {
-                        newTile = new MapTile(plains, Resource.Nothing, TileType.Plains);
+                        newTile = new MapTile(Resource.Nothing, TileType.Plains);
                       
                     }
 

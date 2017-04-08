@@ -2,17 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AutoMap : MonoBehaviour 
+public class AutoMap 
 {
-	public Transform water;
-	public Transform forest;
-	public Transform plains;
-	public Transform mountain;
-	public Transform sand;
-	public Transform boulder;
-	public Transform homeBase;
 
-	public int mapSize;
+
+	private int mapSize;
 
 	private Map map;
 	private NoiseGenerator heightMap;
@@ -26,21 +20,32 @@ public class AutoMap : MonoBehaviour
 	private List<Position2D> mainComponent;
 
 	// Use this for initialization
-	void Start () 
+	public AutoMap (int mapSize) 
+	{
+		this.mapSize = mapSize;
+
+	}
+
+	public Map CreateMap ()
 	{
 		generateTerrain ();
 		while (!ValidateTerrain ()) {
-			map.Destroy ();
 			generateTerrain ();
 		}
+
+		PlaceResources ();
+		while (!ValidateResources()) {
+			map.RemoveAllResources ();
+			PlaceResources ();
+		}
+
+		return map;
 	}
 
 	private void generateTerrain()
 	{
-		//Assume all tiles are same sized squares
-		Bounds tileBounds = water.GetComponent<Renderer> ().bounds;
 
-		map = new Map (mapSize, tileBounds.max.x - tileBounds.min.x);
+		map = new Map (mapSize);
 
 		heightMap = new NoiseGenerator (1);
 		rainMap = new NoiseGenerator (1);
@@ -69,23 +74,23 @@ public class AutoMap : MonoBehaviour
 
 				//Set tiles on border of map to water tiles
 				if (i == 0 || j == 0 || i == mapSize - 1 || j == mapSize - 1) {
-					tile = new MapTile (water, Resource.Nothing, TileType.Water);
+					tile = new MapTile (Resource.Nothing, TileType.Water);
 				}
 				else if (height <= 0) {
-					tile = new MapTile (water, Resource.Nothing, TileType.Water);
+					tile = new MapTile (Resource.Nothing, TileType.Water);
 				} 
 				else if (height < 0.1f) {
-					tile = new MapTile (sand, Resource.Nothing, TileType.Sand);
+					tile = new MapTile (Resource.Nothing, TileType.Sand);
 				} 
 				else if (height < 0.4f) 
 				{
 					if (rain < 0.6f)
-						tile = new MapTile (plains, Resource.Nothing, TileType.Plains);
+						tile = new MapTile (Resource.Nothing, TileType.Plains);
 					else
-						tile = new MapTile (forest, Resource.Nothing, TileType.Forest);
+						tile = new MapTile (Resource.Nothing, TileType.Forest);
 				}
 				else {
-					tile = new MapTile (mountain, Resource.Nothing, TileType.Mountain);
+					tile = new MapTile (Resource.Nothing, TileType.Mountain);
 					if (rain >= 0.6f)
 						riverStartCandidates.Add (new Position2D (i, j));
 				} 
@@ -105,7 +110,7 @@ public class AutoMap : MonoBehaviour
 
 			if (map.getTileTypeAt (x, y) == TileType.Plains || map.getTileTypeAt (x, y) == TileType.Sand) 
 			{
-				map.setTileAt (x, y, new MapTile(boulder, Resource.Nothing, TileType.Boulder));
+				map.setTileAt (x, y, new MapTile(Resource.Nothing, TileType.Boulder));
 			}
 		}
 
@@ -166,7 +171,7 @@ public class AutoMap : MonoBehaviour
 			foreach (Position2D nextRiv in river) 
 			{
 				heightTable[nextRiv.x, nextRiv.y] = 0;
-				map.setTileAt(nextRiv.x, nextRiv.y, new MapTile(water, Resource.Nothing, TileType.Water));
+				map.setTileAt(nextRiv.x, nextRiv.y, new MapTile(Resource.Nothing, TileType.Water));
 			}
 		}
 	}
@@ -214,7 +219,7 @@ public class AutoMap : MonoBehaviour
 				foreach (Position2D pos in extraIsland) 
 				{
 					heightTable [pos.x, pos.y] = 0;
-					map.setTileAt(pos.x, pos.y, new MapTile(water, Resource.Nothing, TileType.Water));
+					map.setTileAt(pos.x, pos.y, new MapTile(Resource.Nothing, TileType.Water));
 				}
 			}
 		}
@@ -370,6 +375,7 @@ public class AutoMap : MonoBehaviour
 					case TileType.Forest:
 					case TileType.Plains:
 					case TileType.Sand:
+					case TileType.Bridge:
 						toVisit.Add (n);
 						connectedComponent.Add (n);
 						visited [n.x, n.y] = true;
@@ -434,5 +440,136 @@ public class AutoMap : MonoBehaviour
 			neighbors.Add (leftPosition);
 		
 		return neighbors;
+	}
+
+	private void PlaceResources()
+	{
+		//Get a list of all possible positions to place each resource type
+		List<Position2D> baseSpots = new List<Position2D>();
+		List<Position2D> woodSpots = new List<Position2D>();
+		List<Position2D> stoneSpots = new List<Position2D>();
+		List<Position2D> grassSpots = new List<Position2D>();
+
+
+		//For some resources (and the base) we'll want at least one copy to be available from the starting area so generate one of each first
+		foreach (Position2D p in mainComponent) 
+		{
+			TileType type = map.getTileTypeAt(p.x, p.y);
+			if (type == TileType.Boulder) {
+				stoneSpots.Add (p);
+			} else if (type == TileType.Forest) {
+				woodSpots.Add (p);
+			} else if (type == TileType.Plains) {
+				grassSpots.Add (p);
+			} else if (type == TileType.Sand) {
+				baseSpots.Add (p);
+			}
+		}
+
+		Position2D basePosition = baseSpots[Random.Range(0, baseSpots.Count)];
+		Position2D stonePosition = stoneSpots[Random.Range(0, stoneSpots.Count)];
+		Position2D woodPosition = woodSpots[Random.Range(0, woodSpots.Count)];
+		Position2D grassPosition = grassSpots[Random.Range(0, grassSpots.Count)];
+
+		map.setTileAt (basePosition.x, basePosition.y, new MapTile(Resource.Nothing, TileType.Base));
+		map.AddResource (stonePosition.x, stonePosition.y, Resource.Stone);
+		map.AddResource (woodPosition.x, woodPosition.y, Resource.Wood);
+		map.AddResource (grassPosition.x, grassPosition.y, Resource.TallGrass);
+
+		//Now we can add the rest of the resources to random (valid) locations on the island
+		woodSpots.Clear();
+		stoneSpots.Clear();
+		grassSpots.Clear();
+		List<Position2D> ironSpots = new List<Position2D>();
+		List<Position2D> bottleSpots = new List<Position2D>();
+		List<Position2D> sheepSpots = new List<Position2D>();
+
+		for (int i = 0; i < mapSize; i++) 
+		{
+			for (int j = 0; j < mapSize; j++) 
+			{
+				TileType type = map.getTileTypeAt(i, j);
+				if (type == TileType.Boulder) 
+				{
+					stoneSpots.Add (new Position2D(i,j));
+				} 
+				else if (type == TileType.Forest) 
+				{
+					woodSpots.Add (new Position2D(i,j));
+				} 
+				else if (type == TileType.Plains) 
+				{
+					grassSpots.Add (new Position2D(i,j));
+
+					//If the patch is not in the same starting area as the base, we can put sheep on it
+					if (!mainComponent.Contains (new Position2D (i, j))) {
+						sheepSpots.Add (new Position2D (i, j));
+					}
+				} 
+				else if (type == TileType.Mountain) 
+				{
+					//If tile is at the base of a mountain it can be an iron spot,
+					//If it is towards the inside of the mountain it can contain the magic bottle
+					bool isAtEdge = map.getTileTypeAt (i + 1, j) != TileType.Mountain
+					|| map.getTileTypeAt (i - 1, j) != TileType.Mountain
+					|| map.getTileTypeAt (i, j + 1) != TileType.Mountain
+					|| map.getTileTypeAt (i, j - 1) != TileType.Mountain;
+
+
+					if(isAtEdge)
+						ironSpots.Add(new Position2D(i,j));
+					else
+						bottleSpots.Add(new Position2D(i,j));
+				}
+			}
+		}
+
+		//Add Wood
+		int woodCount = Random.Range (2, 6);
+		for (int i = 0; i < woodCount; i++) {
+			Position2D pos = woodSpots [Random.Range (0, woodSpots.Count)];
+			if (map.getResource (pos.x, pos.y) == Resource.Nothing)
+				map.AddResource (pos.x, pos.y, Resource.Wood);
+		}
+
+		//Add Stones
+		int stoneCount = Random.Range (2, 6);
+		for (int i = 0; i < stoneCount; i++) {
+			Position2D pos = stoneSpots [Random.Range (0, stoneSpots.Count)];
+			if (map.getResource (pos.x, pos.y) == Resource.Nothing)
+				map.AddResource (pos.x, pos.y, Resource.Stone);
+		}
+
+		//Add Grass
+		int grassCount = Random.Range (2, 6);
+		for (int i = 0; i < grassCount; i++) {
+			Position2D pos = grassSpots [Random.Range (0, grassSpots.Count)];
+			if (map.getResource (pos.x, pos.y) == Resource.Nothing)
+				map.AddResource (pos.x, pos.y, Resource.TallGrass);
+		}
+
+		//Add Iron
+		int ironCount = Random.Range (2, 6);
+		for (int i = 0; i < ironCount; i++) {
+			Position2D pos = ironSpots [Random.Range (0, ironSpots.Count)];
+			if (map.getResource (pos.x, pos.y) == Resource.Nothing)
+				map.AddResource (pos.x, pos.y, Resource.Iron);
+		}
+
+		//Add Sheep
+		int sheepCount = Random.Range (2, 6);
+		for (int i = 0; i < sheepCount; i++) {
+			Position2D pos = sheepSpots [Random.Range (0, sheepSpots.Count)];
+			if (map.getResource (pos.x, pos.y) == Resource.Nothing)
+				map.AddResource (pos.x, pos.y, Resource.Wool);
+		}
+			
+		//Add Wind Bottle
+		Position2D bottlePos = bottleSpots [Random.Range (0, sheepSpots.Count)];
+		map.AddResource (bottlePos.x, bottlePos.y, Resource.WindBottle);
+	}
+
+	private bool ValidateResources(){
+		return true;
 	}
 }

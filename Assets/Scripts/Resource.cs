@@ -4,5 +4,5 @@ using UnityEngine;
 
 public enum Resource //ResourceType? //TODO  
 {
-	Wood, Iron, Stone, TallGrass, WindBottle, Rope, PickAxe, Axe, MontainKit, Bridge, Nothing
+	Wood, Iron, Stone, TallGrass, Wool, WindBottle, Rope, PickAxe, Axe, MontainKit, Bridge, Nothing
 }

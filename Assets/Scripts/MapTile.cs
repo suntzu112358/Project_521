@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapTile {
-
-	private Transform spriteInstance;
+public class MapTile 
+{
 	private Resource resource;
 	private TileType type;
 
-	public MapTile(Transform prefab, Resource resource, TileType type){
-		this.spriteInstance = GameObject.Instantiate(prefab);
+	public MapTile(Resource resource, TileType type){
 		this.resource = resource;
 		this.type = type;
 	}
@@ -17,10 +15,7 @@ public class MapTile {
 	public bool isResource(){
 		return resource == Resource.Nothing;
 	}
-
-	/**
-	 * @pre must be a resource tile or will return null
-	 */
+		
 	public Resource getResource(){
 		return resource;
 	}
@@ -29,11 +24,11 @@ public class MapTile {
 		return type;
 	}
 
-	public void setPosition(Vector3 newPos){
-		spriteInstance.position = newPos;
+	public void addResource(Resource r){
+		resource = r;
 	}
 
-	public void Destroy(){
-		GameObject.Destroy (spriteInstance.gameObject);
+	public void removeResource(){
+		resource = Resource.Nothing;
 	}
 }
