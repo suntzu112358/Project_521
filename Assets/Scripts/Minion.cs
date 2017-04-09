@@ -111,4 +111,9 @@ public class Minion {
     {
         return agentBag.hasResource(Resource.MontainKit);
     }
+
+	public bool hasDiscoveredTile(int x, int y)
+	{
+		return agentInfo.isRevealedTile [x, y];
+	}
 }

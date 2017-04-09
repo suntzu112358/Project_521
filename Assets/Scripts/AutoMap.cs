@@ -88,9 +88,13 @@ public class AutoMap
 						tile = new MapTile (Resource.Nothing, TileType.Forest);
 				}
 				else {
-					tile = new MapTile (Resource.Nothing, TileType.Mountain);
-					if (rain >= 0.6f)
+					if (rain < 0.6f) {
+						tile = new MapTile (Resource.Nothing, TileType.Mountain);
+					}
+					else{
+						tile = new MapTile (Resource.Nothing, TileType.SnowyMountain);
 						riverStartCandidates.Add (new Position2D (i, j));
+					}
 				} 
 
 				map.setTileAt (i,j, tile);
