@@ -5,7 +5,6 @@ using UnityEngine;
 public class Minion {
 
     private const float speed = 0.1f;
-    private bool isInitialized = false;
     private int posX;
     private int posY;
     private float tileSize;
@@ -19,20 +18,39 @@ public class Minion {
     
     private bool isMoving = false;
 
-	public Minion ( int posX, int posY, Map map, float tileSize)
+	public Minion ( int posX, int posY, Map map, Base homeBase, float tileSize)
 	{
 		this.posX = posX;
 		this.posY = posY;
 		this.agentBag = new Inventory (true);
 		this.agentInfo = new Knowledge(map);
-		this.isInitialized = true;
         this.tileSize = tileSize;
         currentPath = new List<Position2D>();
 
         astar = new AStar(map.mapSize, map.mapSize, map);
         agentInfo.discoverTiles(this.posX, this.posY);
+
+        initState();
     }
 
+    public void initState()
+    {
+        agentInfo.setState(State.hasPathToGrass, false);
+        agentInfo.setState(State.hasPathToIron, false);
+        agentInfo.setState(State.hasPathToSheep, false);
+        agentInfo.setState(State.hasPathToStone, false);
+        agentInfo.setState(State.hasPathToWind, false);
+        agentInfo.setState(State.hasPathToWood, false);
+
+        agentInfo.setState(State.hasPickAxe, false);
+        agentInfo.setState(State.hasAxe, false);
+
+        agentInfo.setState(State.hasSpace, true);
+
+        agentInfo.setState(State.axeAtBase, true);
+        agentInfo.setState(State.pickAxeAtBase, true);
+
+    }
     
     //IEnumerator walkToPos(List<Position2D> positions)
     //{
@@ -112,8 +130,14 @@ public class Minion {
         return agentBag.hasResource(Resource.MontainKit);
     }
 
+
 	public bool hasDiscoveredTile(int x, int y)
 	{
 		return agentInfo.isRevealedTile [x, y];
 	}
+
+    public int getItemCount(Resource r)
+    {
+        return agentBag.getItemCount(r);
+    }
 }

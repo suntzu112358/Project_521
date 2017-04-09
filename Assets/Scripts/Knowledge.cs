@@ -193,5 +193,17 @@ public class Knowledge {
 
         return val;
     }
+
+    public void setState(State state, bool val)
+    {
+        if (curAgentState.ContainsKey(state))
+        {
+            curAgentState[state] = val;
+        }
+        else
+        {
+            curAgentState.Add(state, val);
+        }
+    }
 	//GetTileInfo
 }

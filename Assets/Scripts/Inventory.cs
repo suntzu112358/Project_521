@@ -101,6 +101,16 @@ public class Inventory {
         return false;
     }
 
+    public int getItemCount(Resource r)
+    {
+        if (items.ContainsKey(r))
+        {
+            return items[r];
+        }
+        else
+            return 0;
+    }
+
     private void reduceInventorySpace()
     {
         freeSpace--;
@@ -120,8 +130,4 @@ public class Inventory {
         }
 
     }
-
-    public bool BuildRecipe(CraftingRecipe r){
-		return true;
-	}
 }

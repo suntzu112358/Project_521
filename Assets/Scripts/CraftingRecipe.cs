@@ -5,15 +5,15 @@ using UnityEngine;
 
 public class CraftingRecipe : Action {
 
-    protected CraftingRecipe(Dictionary<Resource, int> preConditions, Dictionary<Resource, int>  postConditions)
-        : base(preConditions, postConditions)
+    public CraftingRecipe()
+        : base()
     {
-        
     }
 
 
     public override void doAction(Minion agent)
     {
+        //Move to base
         throw new NotImplementedException();
     }
 

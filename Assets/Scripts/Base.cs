@@ -6,25 +6,35 @@ using System.Text;
 //NOTE this class will function as a singleton
 public class Base
 {
-    Inventory worldState;
-    Knowledge worldInfo;
+    Inventory baseItems;
+    Knowledge baseInfo;
 
-    Base instance = null;
-
-    private Base(Map map)
+    public Base(Map map)
     {
-        worldState = new Inventory(false);
-        worldInfo = new Knowledge(map);
+        baseItems = new Inventory(false);
+        baseInfo = new Knowledge(map);
+
+        initState();
+    }
+
+    public void initState()
+    {
+        baseInfo.setState(State.hasPathToGrass, false);
+        baseInfo.setState(State.hasPathToIron, false);
+        baseInfo.setState(State.hasPathToSheep, false);
+        baseInfo.setState(State.hasPathToStone, false);
+        baseInfo.setState(State.hasPathToWind, false);
+        baseInfo.setState(State.hasPathToWood, false);
+
+        baseInfo.setState(State.hasPickAxe, true);
+        baseInfo.setState(State.hasAxe, true);
+
+        baseInfo.setState(State.hasSpace, true);
+
+        baseInfo.setState(State.axeAtBase, true);
+        baseInfo.setState(State.pickAxeAtBase, true);
 
     }
 
-    public Base getInstance(Map map)
-    {
-        if(instance == null)
-        {
-            return new Base(map);
-        }
-        return instance;
-    }
 }
 

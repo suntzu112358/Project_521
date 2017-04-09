@@ -47,7 +47,7 @@ public class Game : MonoBehaviour
 	private const int resourceDepth = 0;
 	private const int minionDepth = -1;
 
-    private Explore explore;
+    private Planner planner;
 
     // Use this for initialization
     void Start () 
@@ -55,12 +55,13 @@ public class Game : MonoBehaviour
 		mapGenerator = new AutoMap (mapSize);
 		map = mapGenerator.CreateMap ();
 
+        homeBase = new Base(map);
 		minions = new Minion[minionCount];
         minionSprites = new Transform[minionCount];
         List<Position2D> minionPosList = mapGenerator.GetMinionPositions(minionCount);
         for(int i = 0; i < minionCount; i++)
         {
-            minions[i] = new Minion(minionPosList[i].x, minionPosList[i].y, map, tileSize);
+            minions[i] = new Minion(minionPosList[i].x, minionPosList[i].y, map, homeBase, tileSize);
             minionSprites[i] = Instantiate(minionPrefab);
             minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
         }
@@ -151,14 +152,7 @@ public class Game : MonoBehaviour
 			}
 		}
 
-
-
-
-		//TODO: this is really bad, change it
-        explore = new Explore(null, null, null, null);
-
-
-
+        planner = new Planner();
 
         StartCoroutine(GameLoop());
     }
@@ -172,13 +166,16 @@ public class Game : MonoBehaviour
 
     IEnumerator GameLoop()
     {
+        Action nextAction;
         while (!gameOver)
         {
             for (int i = 0; i < minionCount; i++)
             {
+                nextAction = planner.getNextAction(minions[i]);
+                nextAction.doAction(minions[i]);
+
                 minions[i].takeStep();
-				minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
-                explore.doAction(minions[i]);
+                minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
             }
 
 			UpdateMap ();

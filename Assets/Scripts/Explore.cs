@@ -6,8 +6,8 @@ using UnityEngine;
 public class Explore : Action
 {
 
-    public Explore(Dictionary<Resource, int> preConditions, Dictionary<Resource, int> postConditions, Dictionary<State, bool> boolPreConditions, Dictionary<State, bool> boolPostConditions)
-        : base(preConditions, postConditions, boolPreConditions, boolPostConditions)
+    public Explore()
+        : base()
     {
 
     }
