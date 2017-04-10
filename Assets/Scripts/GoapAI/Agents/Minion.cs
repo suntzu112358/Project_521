@@ -27,7 +27,7 @@ public class Minion {
 		this.posY = posY;
 		this.agentBag = new Inventory (10);
         //TODO: pass baseKnowledge and inventory
-		this.agentInfo = new Knowledge(map);
+		this.agentInfo = new Knowledge(map, homeBase);
         currentPath = new List<Position2D>();
 
         astar = new AStar(map.mapSize, map.mapSize, map);
@@ -172,15 +172,11 @@ public class Minion {
         }
     }
 
-    public void shareKnowledgeWithBase()
-    {
-        agentInfo.syncRevealedTiles(homeBase.baseInfo);
-        agentInfo.syncStates(homeBase.baseInfo);
-    }
-
-    public void updateInventories()
+    public void baseUpdate(bool keepTools)
     {
         agentBag.depositInventoryToBase(homeBase.baseItems);
+        agentInfo.syncRevealedTiles(homeBase.baseInfo);
+        agentInfo.syncStates(homeBase, keepTools);
     }
 
     public void harvestResource(Resource res)
@@ -192,13 +188,13 @@ public class Minion {
         }
     }
 
-    public void tryGetTool(State tool, State isToolAtBase)
+    public void tryGetTool(State hasTool, State isToolAtBase)
     {
         if (homeBase.baseInfo.getStateInfo(isToolAtBase))
         {
-            agentInfo.setState(tool, true);
+            agentInfo.setState(hasTool, true);
             agentInfo.setState(isToolAtBase, false);
-            homeBase.baseInfo.setState(tool, false);
+            homeBase.baseInfo.setState(hasTool, false);
             homeBase.baseInfo.setState(isToolAtBase, false);
         }
     }
@@ -211,5 +207,10 @@ public class Minion {
     public void removeItemFromBase(Resource r, int amount)
     {
         homeBase.baseItems.removeItem(r, amount);
+    }
+
+    public float getClosestResourceDistance(Resource r)
+    {
+        return agentInfo.getClosestResourceDistance(r, getCurPos());
     }
 }

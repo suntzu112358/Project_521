@@ -17,8 +17,13 @@ public class CraftingRecipe : Action {
 
     public override void doAction(Minion minion)
     {
-        minion.updateInventories();
-        minion.shareKnowledgeWithBase();
+        minion.baseUpdate(false);
+
+        //It might be that some resources have been used since the last time the minion was at the base so it might
+        //not be able to make the item anymore even though it thought it could
+        if (!isDoableByMinion(minion))
+            return;
+
         foreach(var preCond in preConditions)
         {
             minion.removeItemFromBase(preCond.Key, preCond.Value);
@@ -29,7 +34,8 @@ public class CraftingRecipe : Action {
         }
     }
 
-    //TODO create a factory to auto load and dynamically create the objects which should be stored as actions or something
-    //I need to sleep and think about this more
-    //auto load from json or something, maybe yaml? something simple
+    public override float getCost(Minion minion)
+    {
+        return 1 + Mathf.Abs(minion.getCurPos().x - minion.basePosition.x) + Mathf.Abs(minion.getCurPos().y - minion.basePosition.y);
+    }
 }

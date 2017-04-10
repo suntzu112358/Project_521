@@ -108,9 +108,9 @@ public class ActionFactory
         harvestActions = new Queue<HarvestResource>();
 
         harvestActions.Enqueue(getWood);
-        //harvestActions.Enqueue(getIron);
-        //harvestActions.Enqueue(getStone);
-        //harvestActions.Enqueue(getGrass);
+        harvestActions.Enqueue(getIron);
+        harvestActions.Enqueue(getStone);
+        harvestActions.Enqueue(getGrass);
         //harvestActions.Enqueue(getWool);
         //harvestActions.Enqueue(getWind);
 
@@ -167,7 +167,7 @@ public class ActionFactory
         getToolActions = new Queue<GetTool>();
 
         getToolActions.Enqueue(getAxe);
-        //getToolActions.Enqueue(getPickAxe);
+        getToolActions.Enqueue(getPickAxe);
         //getToolActions.Enqueue(getShears);
 
     }
@@ -186,8 +186,8 @@ public class ActionFactory
         //init queue
         recipeActions = new Queue<CraftingRecipe>();
 
-        //recipeActions.Enqueue(makeHammer);
-        //recipeActions.Enqueue(makeRope);
+        recipeActions.Enqueue(makeHammer);
+        recipeActions.Enqueue(makeRope);
         //recipeActions.Enqueue(makeMtnClimbKit);
         //recipeActions.Enqueue(makeFabric);
         //recipeActions.Enqueue(makeBridge);
@@ -253,13 +253,13 @@ public class ActionFactory
         //SHIP! Goal Action
         //Pre: 30 wood, 15 iron, 10 rope, 1 wind, 30 fabric, 1 hammer
         //post: 1 hammer, 1 ship
-        makeShip.addPreCond(Resource.Wood, 5);
-        //makeShip.addPreCond(Resource.Iron, 15);
-        //makeShip.addPreCond(Resource.Rope, 10);
+        makeShip.addPreCond(Resource.Wood, 15);
+        makeShip.addPreCond(Resource.Iron, 15);
+        makeShip.addPreCond(Resource.Rope, 10);
         //makeShip.addPreCond(Resource.Fabric, 30);
         //makeShip.addPreCond(Resource.WindBottle, 1);
-        //makeShip.addPostCond(Resource.Ship, 1);
-        //makeShip.addTool(Resource.Hammer);
+        makeShip.addPostCond(Resource.Ship, 1);
+        makeShip.addTool(Resource.Hammer);
 
         goalAction = makeShip;
     }

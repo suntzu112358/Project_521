@@ -13,6 +13,8 @@ public class Knowledge {
     public List<Frontier> riverFrontiers { get; private set; }
     public bool canCrossMountains = false; //use a reference NOT a primitive type TODO or rather a function calls
 
+    private Inventory lastBaseInventory;
+
     private AStar pathFinder;
     
 
@@ -57,7 +59,7 @@ public class Knowledge {
 
     }
 
-	public Knowledge(Map map)
+	public Knowledge(Map map, Base homeBase)
 	{
 		this.map = map;
 		isRevealedTile = new bool[map.mapSize, map.mapSize];
@@ -76,8 +78,9 @@ public class Knowledge {
 
         this.curAgentState = new Dictionary<State, bool>();
         pathFinder = new AStar(map.mapSize, map.mapSize, map);
+        lastBaseInventory = homeBase.copyBaseInventory();
 
-	}
+    }
 
     private void removeFrontier(int x, int y)
     {
@@ -236,7 +239,22 @@ public class Knowledge {
         }
     }
 
-    public List<Position2D > getPathToClosestResource(Resource resType, Position2D curPos)
+    public float getClosestResourceDistance(Resource r, Position2D curPos)
+    {
+        List<Position2D> resourcePositions =  map.getResourcePositions(r);
+        float min = Mathf.Infinity;
+        foreach(Position2D p in resourcePositions)
+        {
+            if (min > Mathf.Abs(p.x - curPos.x) + Mathf.Abs(p.y - curPos.y))
+            {
+                min = Mathf.Abs(p.x - curPos.x) + Mathf.Abs(p.y - curPos.y);
+            }
+        }
+
+        return min;
+    }
+
+    public List<Position2D> getPathToClosestResource(Resource resType, Position2D curPos)
     {
         List<Position2D> resPositions = new List<Position2D>();
         for(int i=0; i<map.mapSize; i++)
@@ -245,7 +263,26 @@ public class Knowledge {
             {
                 if(map.getResource(i,j) == resType && isRevealedTile[i,j])
                 {
-                    resPositions.Add(new Position2D(i, j));
+                    if (map.isPassable(map.getTileTypeAt(i, j), canCrossMountains))
+                    {
+                        resPositions.Add(new Position2D(i, j));
+                    }
+                    else if (map.isPassable(map.getTileTypeAt(i+1, j), canCrossMountains))
+                    {
+                        resPositions.Add(new Position2D(i+1, j));
+                    }
+                    else if (map.isPassable(map.getTileTypeAt(i, j+1), canCrossMountains))
+                    {
+                        resPositions.Add(new Position2D(i, j+1));
+                    }
+                    else if (map.isPassable(map.getTileTypeAt(i-1, j), canCrossMountains))
+                    {
+                        resPositions.Add(new Position2D(i-1, j));
+                    }
+                    else if (map.isPassable(map.getTileTypeAt(i, j-1), canCrossMountains))
+                    {
+                        resPositions.Add(new Position2D(i, j-1));
+                    }
                 }
             }
         }
@@ -256,7 +293,7 @@ public class Knowledge {
         foreach(Position2D pos in resPositions)
         {
             List<Position2D> pathToRes = pathFinder.pathFindNewTarget(curPos, pos, canCrossMountains);
-            if(pathToRes.Count < minLength)
+            if(pathToRes != null && pathToRes.Count < minLength)
             {
                 shortestPath = pathToRes;
                 minLength = pathToRes.Count;
@@ -281,31 +318,30 @@ public class Knowledge {
         }
     }
 
-    public void syncStates(Knowledge baseKnowledge)
+    public void syncStates(Base homeBase, bool keepTools)
     {
-        //Drop off tools
-        if (this.getStateInfo(State.hasAxe))
+        Knowledge baseKnowledge = homeBase.baseInfo;
+
+        if (!keepTools)
         {
-            baseKnowledge.setState(State.hasAxe, true);
-            baseKnowledge.setState(State.axeAtBase, true);
-        }
-        if (this.getStateInfo(State.hasPickAxe))
-        {
-            baseKnowledge.setState(State.hasPickAxe, true);
-            baseKnowledge.setState(State.pickAxeAtBase, true);
+            //Drop off tools
+            if (this.getStateInfo(State.hasAxe))
+            {
+                baseKnowledge.setState(State.hasAxe, true);
+                baseKnowledge.setState(State.axeAtBase, true);
+            }
+            if (this.getStateInfo(State.hasPickAxe))
+            {
+                baseKnowledge.setState(State.hasPickAxe, true);
+                baseKnowledge.setState(State.pickAxeAtBase, true);
+            }
+
+            this.setState(State.hasAxe, false);
+            this.setState(State.hasPickAxe, false);
         }
 
-        this.setState(State.hasAxe, false);
-        this.setState(State.hasPickAxe, false);
-
-        if (baseKnowledge.getStateInfo(State.axeAtBase))
-        {
-            this.setState(State.axeAtBase, true);
-        }
-        if (baseKnowledge.getStateInfo(State.pickAxeAtBase))
-        {
-            this.setState(State.pickAxeAtBase, true);
-        }
+        this.setState(State.axeAtBase, baseKnowledge.getStateInfo(State.axeAtBase));
+        this.setState(State.pickAxeAtBase, baseKnowledge.getStateInfo(State.pickAxeAtBase));
 
         //Update if new resources have been found
         if(this.getStateInfo(State.hasPathToGrass) || baseKnowledge.getStateInfo(State.hasPathToGrass))
@@ -341,5 +377,11 @@ public class Knowledge {
 
         this.setState(State.hasSpace, true);
 
+        lastBaseInventory = homeBase.copyBaseInventory();
+    }
+
+    public int getItemsAtBase(Resource r)
+    {
+        return lastBaseInventory.getItemCount(r);
     }
 }

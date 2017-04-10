@@ -76,5 +76,11 @@ public class Explore : Action
 
         return newFrontier.pos;
     }
+
+    public override float getCost(Minion minion)
+    {
+        Position2D nextPos = findNextFrontier(minion);
+        return Mathf.Abs(minion.getCurPos().x - nextPos.x) + Mathf.Abs(minion.getCurPos().y - nextPos.y);
+    }
 }
 

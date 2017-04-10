@@ -5,7 +5,7 @@ using UnityEngine;
 public class Game : MonoBehaviour 
 {
 	public int mapSize;
-	private int minionCount = 1;
+	public int minionCount = 1;
     private float timeStep = 0.1f;
 	private float tileSize;
 
@@ -68,7 +68,7 @@ public class Game : MonoBehaviour
         List<Position2D> minionPosList = mapGenerator.GetMinionPositions(minionCount);
         for(int i = 0; i < minionCount; i++)
         {
-            minions[i] = new Minion(minionPosList[i].x, minionPosList[i].y, map, homeBase, tileSize);
+            minions[i] = new Minion(minionPosList[0].x, minionPosList[0].y, map, homeBase, tileSize);
             minionSprites[i] = Instantiate(minionPrefab);
             minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
             currentMinionAction[i] = planner.getNextAction(minions[i]);
@@ -187,10 +187,23 @@ public class Game : MonoBehaviour
                 {
                     if (currentMinionAction[i] != planner.finalGoal)
                     {
-                        currentMinionAction[i].doAction(minions[i]);
+                        //If last action was an exploration action then we don't need to wait 1 turn to finish the action
+                        //So we can take a step as soon as we decide on our next action
+                        if(currentMinionAction[i] is Explore)
+                        {
+                            currentMinionAction[i] = planner.getNextAction(minions[i]);
+                            currentMinionAction[i].moveToActionLoc(minions[i]);
 
-                        currentMinionAction[i] = planner.getNextAction(minions[i]);
-                        currentMinionAction[i].moveToActionLoc(minions[i]);
+                            if (minions[i].takeStep())
+                                minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
+                        }
+                        else
+                        {
+                            currentMinionAction[i].doAction(minions[i]);
+
+                            currentMinionAction[i] = planner.getNextAction(minions[i]);
+                            currentMinionAction[i].moveToActionLoc(minions[i]);
+                        }
                     }
                     else
                     {

@@ -60,7 +60,7 @@ public abstract class Action
     {
         foreach(var preCond in preConditions)
         {
-            if(preCond.Value > minion.getItemCount(preCond.Key))
+            if (preCond.Value > minion.getItemCount(preCond.Key) + minion.agentInfo.getItemsAtBase(preCond.Key))
             {
                 return false;
             }
@@ -79,6 +79,7 @@ public abstract class Action
 
     public abstract void moveToActionLoc(Minion minion);
     public abstract void doAction(Minion minion);
+    public abstract float getCost(Minion minion);
 
 }
 

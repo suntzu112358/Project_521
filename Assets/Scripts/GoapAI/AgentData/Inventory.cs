@@ -6,8 +6,6 @@ public class Inventory {
 
 	private Dictionary<Resource, int> items;
     public int freeSpace { get; private set; }
-    private bool isMinionAgent;
-
 
     public Inventory(int inventoryCapacity)
     {
@@ -95,5 +93,15 @@ public class Inventory {
             if (!removeSuccess)
                 throw new System.Exception();
         }
+    }
+
+    public Inventory clone()
+    {
+        Inventory clonedInventory = new Inventory(freeSpace);
+        foreach(var item in items)
+        {
+            clonedInventory.items.Add(item.Key, item.Value);
+        }
+        return clonedInventory;
     }
 }

@@ -14,7 +14,7 @@ public class Base
     public Base(Map map, Position2D basePosition)
     {
         baseItems = new Inventory(int.MaxValue);
-        baseInfo = new Knowledge(map);
+        baseInfo = new Knowledge(map, this);
 
         this.basePosition = basePosition;
 
@@ -40,5 +40,9 @@ public class Base
 
     }
 
+    public Inventory copyBaseInventory()
+    {
+        return baseItems.clone();
+    }
 }
 

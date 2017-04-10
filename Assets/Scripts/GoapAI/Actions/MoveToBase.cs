@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 public class MoveToBase : Action
 {
@@ -21,8 +22,12 @@ public class MoveToBase : Action
 
     public override void doAction(Minion minion)
     {
-        minion.updateInventories();
-        minion.shareKnowledgeWithBase();
+        minion.baseUpdate(false);
+    }
+
+    public override float getCost(Minion minion)
+    {
+        return 1 + Mathf.Abs(minion.getCurPos().x - minion.basePosition.x) + Mathf.Abs(minion.getCurPos().y - minion.basePosition.y);
     }
 }
 

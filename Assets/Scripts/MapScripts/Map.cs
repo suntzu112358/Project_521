@@ -7,6 +7,9 @@ public class Map{
 	public int mapSize { get; private set;}
 	private MapTile[,] mapGrid;
 
+    //Store list of resources so they can quickly be accessed without searching the map
+    private Dictionary<Resource, List<Position2D>> resourcePositions;
+
     public TileType getTileTypeAt(int x, int y)
     {
         if (x < 0 || x >= mapSize)
@@ -35,7 +38,17 @@ public class Map{
 
 	public void AddResource(int x, int y, Resource r)
 	{
+        removeResource(x, y);
+
 		mapGrid [x, y].addResource (r);
+
+        if (!resourcePositions.ContainsKey(r))
+        {
+            resourcePositions.Add(r, new List<Position2D>());
+        }
+
+        resourcePositions[r].Add(new Position2D(x, y));
+
 	}
 
 	public void RemoveAllResources()
@@ -44,10 +57,20 @@ public class Map{
 		{
 			for(int j=0; j<mapSize; j++)
 			{
-				mapGrid [i, j].removeResource ();
+                removeResource(i, j);
 			}
 		}
 	}
+
+    public void removeResource(int x, int y)
+    {
+        Resource prev = mapGrid[x, y].getResource();
+        if (prev != Resource.Nothing)
+        {
+            mapGrid[x, y].removeResource();
+            resourcePositions[prev].Remove(new Position2D(x,y));
+        }
+    }
 
     public void setTileAt(int x, int y, MapTile newTile)
 	{
@@ -58,7 +81,8 @@ public class Map{
 	{
 		this.mapSize = mapSize;
 		mapGrid = new MapTile[mapSize, mapSize];
-	}
+        resourcePositions = new Dictionary<Resource, List<Position2D>>();
+    }
 
     public bool isPassable(TileType type, bool canCrossMountians)
     {
@@ -93,6 +117,18 @@ public class Map{
         else
         {
             return false;
+        }
+    }
+
+    public List<Position2D> getResourcePositions(Resource r)
+    {
+        if (resourcePositions.ContainsKey(r))
+        {
+            return resourcePositions[r];
+        }
+        else
+        {
+            return new List<Position2D>();
         }
     }
 }

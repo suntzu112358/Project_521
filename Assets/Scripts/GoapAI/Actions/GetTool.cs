@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 
 public class GetTool : Action
@@ -25,9 +26,13 @@ public class GetTool : Action
 
     public override void doAction(Minion minion)
     {
-        minion.updateInventories();
-        minion.shareKnowledgeWithBase();
+        minion.baseUpdate(true);
         minion.tryGetTool(toolType, toolIsAtBase);
+    }
+
+    public override float getCost(Minion minion)
+    {
+        return 1 + Mathf.Abs(minion.getCurPos().x - minion.basePosition.x) + Mathf.Abs(minion.getCurPos().y - minion.basePosition.y);
     }
 }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -75,29 +74,58 @@ public class Planner
 
         List<Action> possibleActions = getPossibleActions(minion);
 
-        Dictionary<Action, int> actionCount = new Dictionary<Action, int>();
+        if(possibleActions.Count == 0)
+        {
+            possibleActions = getPossibleActions(minion);
+        }
 
+        //Count number of times each action occurs in the tree
+        Dictionary<Action, float> actionValue = new Dictionary<Action, float>();
         foreach(Action a in possibleActions)
         {
-            if (actionCount.ContainsKey(a))
+            if (actionValue.ContainsKey(a))
             {
-                actionCount[a]++;
+                actionValue[a]++;
             }
             else
             {
-                actionCount.Add(a, 1);
+                actionValue.Add(a, 1);
             }
         }
 
-        int max = int.MinValue;
+        //Divide value of action by cost required to complete it
+        List<Action> keys = new List<Action>();
+        foreach (var a in actionValue)
+            keys.Add(a.Key);
 
-        foreach(var action in actionCount)
+        foreach (Action a in keys)
+            actionValue[a] /= a.getCost(minion);
+
+        //Normalize scores so that they add up to 1
+        float total = 0;
+        foreach (Action a in keys)
+            total += actionValue[a];
+
+        foreach (Action a in keys)
+            actionValue[a] /= total;
+
+        //Randomly select action while favoring actions that occur more times in the tree
+        //and penalizing actions that require moving far away from the minion's current position
+        float rand = Random.Range(0f, 1f);
+
+        foreach(var action in actionValue)
         {
-            if(action.Value > max)
+            if(rand < action.Value)
             {
                 nextAction = action.Key;
-                max = action.Value;
+                break;
             }
+            rand -= action.Value;
+        }
+
+        if(nextAction == null)
+        {
+            throw new System.InvalidOperationException();
         }
 
         return nextAction;
@@ -128,7 +156,7 @@ public class Planner
 
                 foreach (var preCond in current.action.preConditions)
                 {
-                    if (preCond.Value > minion.getItemCount(preCond.Key))
+                    if (preCond.Value > minion.getItemCount(preCond.Key) + minion.agentInfo.getItemsAtBase(preCond.Key))
                     {
                         foreach (Node child in current.children)
                         {
