@@ -18,8 +18,6 @@
 -Recipes:
 
   -Hammer: 1 wood, 1 stone, 1 rope
-  -Axe: wood + iron + hammer
-  -Pickaxe: wood + iron + hammer
   -Rope: 3 Tall grass
   -Mountain climbimg kit: 2 Ropes + iron + hammer
   -Fabric: 2 Wool

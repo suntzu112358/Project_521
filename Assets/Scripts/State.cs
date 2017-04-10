@@ -6,6 +6,6 @@ using System.Text;
 public enum State
 {
     hasPathToIron, hasPathToWood, hasPathToGrass, hasPathToSheep, hasPathToWind, hasPathToStone,
-    axeAtBase, pickAxeAtBase, //Mtnclmibkit? bridge?
-    hasSpace, hasAxe, hasPickAxe //mtn, bridge?
+    axeAtBase, pickAxeAtBase, shearsAtBase, //Mtnclmibkit? bridge?
+    hasSpace, hasAxe, hasPickAxe, hasShears //mtn, bridge?
 }

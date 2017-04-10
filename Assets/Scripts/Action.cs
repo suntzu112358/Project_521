@@ -6,12 +6,14 @@ using System.Text;
 
 public abstract class Action 
 {
+    //TODO can these be private? :(
     public Dictionary<State, bool> boolPreConditions;
     public Dictionary<State, bool> boolPostConditions;
     public Dictionary<Resource, int> preConditions;
     public Dictionary<Resource, int> postConditions;
 
-    public int cost; // TODO need a subscribe function herererere
+
+    public int cost;
 
 
     public Action()
@@ -46,7 +48,7 @@ public abstract class Action
     }
 
 
-    public Action(Dictionary<Resource, int> preConditions, Dictionary<Resource, int> postConditions, Dictionary<State, bool> boolPreConditions, Dictionary<State, bool> boolPostConditions)
+    private Action(Dictionary<Resource, int> preConditions, Dictionary<Resource, int> postConditions, Dictionary<State, bool> boolPreConditions, Dictionary<State, bool> boolPostConditions)
     {
         this.preConditions = preConditions;
         this.postConditions = postConditions;
@@ -77,5 +79,6 @@ public abstract class Action
 
     public abstract void moveToActionLoc(Minion minion);
     public abstract void doAction(Minion minion);
+
 }
 

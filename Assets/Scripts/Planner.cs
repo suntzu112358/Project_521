@@ -5,9 +5,12 @@ using UnityEngine;
 
 public class Planner
 {
+
     public Action finalGoal { get; private set; }
     private Node actionTree;
     private List<Action> possibleActions;
+    private ActionFactory actionFactory;
+
 
     public Planner(Position2D baseLocation)
     {
@@ -17,63 +20,53 @@ public class Planner
 
     private void initActions(Position2D baseLocation)
     {
+
+        Action actionToAdd;
+
+        actionFactory = new ActionFactory();
         possibleActions = new List<Action>();
 
-        Explore explore = new Explore();
-        //Explore exploreMountains; //TODO
+        //Get all CraftingRecipe actions
+        actionToAdd = actionFactory.getNextAction(typeof(CraftingRecipe));
+        while(actionToAdd != null)
+        {
+            possibleActions.Add(actionToAdd);
+            actionToAdd = actionFactory.getNextAction(typeof(CraftingRecipe));
+        }
 
-        MoveToBase moveToBase = new MoveToBase();
+        //Get all GetTool actions
+        actionToAdd = actionFactory.getNextAction(typeof(GetTool));
+        while (actionToAdd != null)
+        {
+            possibleActions.Add(actionToAdd);
+            actionToAdd = actionFactory.getNextAction(typeof(GetTool));
+        }
 
-        CraftingRecipe makeHammer = new CraftingRecipe();
-        CraftingRecipe makeRope = new CraftingRecipe();
-        CraftingRecipe makeMtnClimbKit = new CraftingRecipe();
-        CraftingRecipe makeFabric = new CraftingRecipe();
-        CraftingRecipe makeBridge = new CraftingRecipe();
-        CraftingRecipe makeShip = new CraftingRecipe();
-        CraftingRecipe makeWood = new CraftingRecipe();
+        //Get all HarvestResource actions
+        actionToAdd = actionFactory.getNextAction(typeof(HarvestResource));
+        while (actionToAdd != null)
+        {
+            possibleActions.Add(actionToAdd);
+            actionToAdd = actionFactory.getNextAction(typeof(HarvestResource));
+        }
 
-		HarvestResource getWood = new HarvestResource(Resource.Wood);
+        //Get all Explore actions
+        actionToAdd = actionFactory.getNextAction(typeof(Explore));
+        while (actionToAdd != null)
+        {
+            possibleActions.Add(actionToAdd);
+            actionToAdd = actionFactory.getNextAction(typeof(Explore));
+        }
 
-        GetTool getAxe = new GetTool(State.hasAxe, State.axeAtBase);
+        //Get MoveToBase action
+        actionToAdd = actionFactory.getNextAction(typeof(MoveToBase));
+        possibleActions.Add(actionToAdd);
 
-        makeHammer.addPreCond(Resource.Wood, 1);
-        makeHammer.addPreCond(Resource.Stone, 1);
-        makeHammer.addPreCond(Resource.Rope, 1);
-        makeHammer.addTool(Resource.Hammer);
+        //Get the final goal action
+        finalGoal = actionFactory.getGoalAction();
 
-        makeRope.addPreCond(Resource.TallGrass, 3);
+        actionTree = buildGraph(finalGoal);
 
-        makeMtnClimbKit.addPreCond(Resource.Rope, 2);
-        makeMtnClimbKit.addPreCond(Resource.Iron, 1);
-        makeMtnClimbKit.addTool(Resource.Hammer);
-
-        makeFabric.addPreCond(Resource.Wool, 2);
-
-        makeBridge.addPreCond(Resource.Wood, 10);
-        makeBridge.addPreCond(Resource.Rope, 4);
-
-        makeShip.addPreCond(Resource.Wood, 30);
-        makeShip.addPreCond(Resource.Iron, 15);
-        makeShip.addPreCond(Resource.Rope, 10);
-        makeShip.addPreCond(Resource.WindBottle, 1);
-        makeShip.addTool(Resource.Hammer);
-
-        makeWood.addPreCond(Resource.Wood, 5);
-
-        getWood.addPreCond(State.hasPathToWood, true);
-        getWood.addPreCond(State.hasAxe, true);
-        getWood.addPostCond(Resource.Wood, 1);
-
-        //TODO need one for each for this
-        explore.addPostCond(State.hasPathToWood, true);
-
-        possibleActions.Add(moveToBase);
-        possibleActions.Add(getAxe);
-        possibleActions.Add(explore);
-        possibleActions.Add(getWood);
-
-        finalGoal = makeWood;
-     
     }
 
     public Action getNextAction(Minion minion)

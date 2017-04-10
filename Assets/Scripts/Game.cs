@@ -72,7 +72,7 @@ public class Game : MonoBehaviour
             minionSprites[i] = Instantiate(minionPrefab);
             minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
             currentMinionAction[i] = planner.getNextAction(minions[i]);
-			currentMinionAction [i].moveToActionLoc (minions [i]);
+			currentMinionAction[i].moveToActionLoc(minions[i]);
         }
 
 		Bounds tileBounds = waterPrefab.GetComponent<Renderer> ().bounds;
