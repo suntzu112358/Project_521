@@ -52,9 +52,6 @@
     <Reference Include="UnityEngine">
       <HintPath>Library\UnityAssemblies\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.Advertisements">
-      <HintPath>Library\UnityAssemblies\UnityEngine.Advertisements.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>Library\UnityAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
@@ -70,9 +67,6 @@
     <Reference Include="UnityEngine.HoloLens">
       <HintPath>Library\UnityAssemblies\UnityEngine.HoloLens.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.Purchasing">
-      <HintPath>Library\UnityAssemblies\UnityEngine.Purchasing.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.VR">
       <HintPath>Library\UnityAssemblies\UnityEngine.VR.dll</HintPath>
     </Reference>
@@ -81,29 +75,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\AStar.cs" />
-    <Compile Include="Assets\Scripts\Action.cs" />
-    <Compile Include="Assets\Scripts\ActionFactory.cs" />
-    <Compile Include="Assets\Scripts\AutoMap.cs" />
-    <Compile Include="Assets\Scripts\Base.cs" />
-    <Compile Include="Assets\Scripts\CraftingRecipe.cs" />
-    <Compile Include="Assets\Scripts\Explore.cs" />
     <Compile Include="Assets\Scripts\Game.cs" />
-    <Compile Include="Assets\Scripts\GetTool.cs" />
-    <Compile Include="Assets\Scripts\HarvestResource.cs" />
-    <Compile Include="Assets\Scripts\Inventory.cs" />
-    <Compile Include="Assets\Scripts\Knowledge.cs" />
-    <Compile Include="Assets\Scripts\ManualMap.cs" />
-    <Compile Include="Assets\Scripts\Map.cs" />
-    <Compile Include="Assets\Scripts\MapTile.cs" />
-    <Compile Include="Assets\Scripts\Minion.cs" />
-    <Compile Include="Assets\Scripts\MoveToBase.cs" />
-    <Compile Include="Assets\Scripts\NoiseGenerator.cs" />
-    <Compile Include="Assets\Scripts\Planner.cs" />
-    <Compile Include="Assets\Scripts\Position2D.cs" />
-    <Compile Include="Assets\Scripts\Resource.cs" />
-    <Compile Include="Assets\Scripts\State.cs" />
-    <Compile Include="Assets\Scripts\TileType.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\Action.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\ActionFactory.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\CraftingRecipe.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\Explore.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\GetTool.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\HarvestResource.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\MoveToBase.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\AgentData\Inventory.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\AgentData\Knowledge.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Agents\Base.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Agents\Minion.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Enums\Resource.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Enums\State.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Planner.cs" />
+    <Compile Include="Assets\Scripts\MapScripts\AutoMap.cs" />
+    <Compile Include="Assets\Scripts\MapScripts\ManualMap.cs" />
+    <Compile Include="Assets\Scripts\MapScripts\Map.cs" />
+    <Compile Include="Assets\Scripts\MapScripts\MapTile.cs" />
+    <Compile Include="Assets\Scripts\MapScripts\NoiseGenerator.cs" />
+    <Compile Include="Assets\Scripts\MapScripts\TileType.cs" />
+    <Compile Include="Assets\Scripts\PathFinding\AStar.cs" />
+    <Compile Include="Assets\Scripts\PathFinding\Position2D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Docs\GameRules.txt" />
