@@ -10,11 +10,23 @@ public class CraftingRecipe : Action {
     {
     }
 
-
-    public override void doAction(Minion agent)
+    public override void moveToActionLoc(Minion minion)
     {
-        //Move to base
-        throw new NotImplementedException();
+        minion.goToPos(minion.basePosition);
+    }
+
+    public override void doAction(Minion minion)
+    {
+        minion.updateInventories();
+        minion.shareKnowledgeWithBase();
+        foreach(var preCond in preConditions)
+        {
+            minion.removeItemFromBase(preCond.Key, preCond.Value);
+        }
+        foreach (var postCond in postConditions)
+        {
+            minion.addItemToBase(postCond.Key, postCond.Value);
+        }
     }
 
     //TODO create a factory to auto load and dynamically create the objects which should be stored as actions or something

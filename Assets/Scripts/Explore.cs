@@ -12,11 +12,15 @@ public class Explore : Action
 
     }
 
-    public override void doAction(Minion agent)
+    public override void moveToActionLoc(Minion minion)
     {
+        Position2D nextPos = findNextFrontier(minion);
+        minion.goToPos(nextPos);
+    }
 
-        Position2D nextPos = findNextFrontier(agent);
-        agent.goToPos(nextPos);
+    public override void doAction(Minion minion)
+    {
+        //In case of exploration, no further action needed when arriving to destination
     }
 
     public Position2D findNextFrontier(Minion minion)

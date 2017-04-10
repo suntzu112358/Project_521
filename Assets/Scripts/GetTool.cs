@@ -6,16 +6,28 @@ using System.Text;
 
 public class GetTool : Action
 {
+    State toolType;
+    State toolIsAtBase;
+
     public GetTool(State toolType, State toolTypeIsAtBase) : base()
     {
         addPreCond(toolTypeIsAtBase, true);
         addPostCond(toolType, true);
+
+        this.toolType = toolType;
+        this.toolIsAtBase = toolTypeIsAtBase;
     }
 
-    public override void doAction(Minion agent)
+    public override void moveToActionLoc(Minion minion)
     {
-        //TODO move to base
-        throw new NotImplementedException();
+        minion.goToPos(minion.basePosition);
+    }
+
+    public override void doAction(Minion minion)
+    {
+        minion.updateInventories();
+        minion.shareKnowledgeWithBase();
+        minion.tryGetTool(toolType, toolIsAtBase);
     }
 }
 

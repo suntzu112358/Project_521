@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class AutoMap 
 {
-
-
 	private int mapSize;
 
 	private Map map;
@@ -14,7 +12,7 @@ public class AutoMap
 
 	private float[,] heightTable;
 
-    Position2D basePosition;
+    public Position2D basePosition { get; private set; }
 
 	//A partition of the map based on accessibility. 
 	//We compute this when validating the terrain but it's also useful once we start placing resources so we'll save it here.

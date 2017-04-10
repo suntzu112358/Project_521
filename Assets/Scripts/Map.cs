@@ -86,6 +86,10 @@ public class Map{
         {
             return canCrossMountians;
         }
+        else if (type == TileType.Base)
+        {
+            return true;
+        }
         else
         {
             return false;

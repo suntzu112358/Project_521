@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-
 public class MoveToBase : Action
 {
+
     public MoveToBase() : base()
     {
         addPreCond(State.hasSpace, false);
@@ -14,9 +14,15 @@ public class MoveToBase : Action
         addPostCond(State.hasPickAxe, false);
     }
 
-    public override void doAction(Minion agent)
+    public override void moveToActionLoc(Minion minion)
     {
-        throw new NotImplementedException();
+        minion.goToPos(minion.basePosition);
+    }
+
+    public override void doAction(Minion minion)
+    {
+        minion.updateInventories();
+        minion.shareKnowledgeWithBase();
     }
 }
 

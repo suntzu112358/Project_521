@@ -6,13 +6,17 @@ using System.Text;
 //NOTE this class will function as a singleton
 public class Base
 {
-    Inventory baseItems;
-    Knowledge baseInfo;
+    public Inventory baseItems { get; private set; }
+    public Knowledge baseInfo { get; private set; }
 
-    public Base(Map map)
+    public Position2D basePosition { get; private set; }
+
+    public Base(Map map, Position2D basePosition)
     {
-        baseItems = new Inventory(false);
+        baseItems = new Inventory(int.MaxValue);
         baseInfo = new Knowledge(map);
+
+        this.basePosition = basePosition;
 
         initState();
     }

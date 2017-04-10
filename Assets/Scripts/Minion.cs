@@ -7,28 +7,34 @@ public class Minion {
     private const float speed = 0.1f;
     private int posX;
     private int posY;
-    private float tileSize;
 
     private List<Position2D> currentPath;
-
 
 	public Knowledge agentInfo { get; private set; }
 	private Inventory agentBag;
     private AStar astar;
+
+    private Base homeBase;
+
+    public Position2D basePosition { get; private set; }
     
-    private bool isMoving = false;
+    public bool isMoving { get; private set; }
 
 	public Minion ( int posX, int posY, Map map, Base homeBase, float tileSize)
 	{
+        isMoving = false;
 		this.posX = posX;
 		this.posY = posY;
-		this.agentBag = new Inventory (true);
+		this.agentBag = new Inventory (10);
+        //TODO: pass baseKnowledge and inventory
 		this.agentInfo = new Knowledge(map);
-        this.tileSize = tileSize;
         currentPath = new List<Position2D>();
 
         astar = new AStar(map.mapSize, map.mapSize, map);
         agentInfo.discoverTiles(this.posX, this.posY);
+
+        this.homeBase = homeBase;
+        basePosition = homeBase.basePosition;
 
         initState();
     }
@@ -81,16 +87,30 @@ public class Minion {
 
 	
 	// Update is called once per frame
-	public void goToPos (Position2D targetPos) {
+	public void goToPos (Position2D targetPos)
+    {
         if (!isMoving)
         {
             currentPath = astar.pathFindNewTarget(new Position2D(posX, posY), targetPos, canCrossMountains());
+            if (currentPath == null)
+            {
+                throw new System.ArgumentNullException();
+            }
             isMoving = true;
         }
     }
 
-    public void takeStep()
+    /**
+     * @return returns false if minion has no more steps to take
+     */
+    public bool takeStep()
     {
+        if (currentPath.Count == 0)
+        {
+            isMoving = false;
+            return false;
+        }
+
         if (isMoving)
         {
             Position2D nextPos = currentPath[0];
@@ -99,12 +119,9 @@ public class Minion {
             posY = nextPos.y;
 
             agentInfo.discoverTiles(posX, posY);
-
-            if (currentPath.Count == 0)
-            {
-                isMoving = false;
-            }
         }
+
+        return true;
     }
 
     //TODO Delete
@@ -139,5 +156,60 @@ public class Minion {
     public int getItemCount(Resource r)
     {
         return agentBag.getItemCount(r);
+    }
+
+
+    public void goToClosestResource(Resource resType)
+    {
+        if (!isMoving)
+        {
+            currentPath = agentInfo.getPathToClosestResource(resType, getCurPos());
+            if (currentPath == null)
+            {
+                throw new System.ArgumentNullException();
+            }
+            isMoving = true;
+        }
+    }
+
+    public void shareKnowledgeWithBase()
+    {
+        agentInfo.syncRevealedTiles(homeBase.baseInfo);
+        agentInfo.syncStates(homeBase.baseInfo);
+    }
+
+    public void updateInventories()
+    {
+        agentBag.depositInventoryToBase(homeBase.baseItems);
+    }
+
+    public void harvestResource(Resource res)
+    {
+        agentBag.addItem(res, 1);
+        if(agentBag.freeSpace == 0)
+        {
+            agentInfo.setState(State.hasSpace, false);
+        }
+    }
+
+    public void tryGetTool(State tool, State isToolAtBase)
+    {
+        if (homeBase.baseInfo.getStateInfo(isToolAtBase))
+        {
+            agentInfo.setState(tool, true);
+            agentInfo.setState(isToolAtBase, false);
+            homeBase.baseInfo.setState(tool, false);
+            homeBase.baseInfo.setState(isToolAtBase, false);
+        }
+    }
+
+    public void addItemToBase(Resource r, int amount)
+    {
+        homeBase.baseItems.addItem(r, amount);
+    }
+
+    public void removeItemFromBase(Resource r, int amount)
+    {
+        homeBase.baseItems.removeItem(r, amount);
     }
 }

@@ -6,14 +6,21 @@ using System.Text;
 
 public class HarvestResource : Action
 {
-    
-    public HarvestResource() : base() {
+    Resource resourceType;
+
+    public HarvestResource(Resource res) : base() {
         addPreCond(State.hasSpace, true);
+        resourceType = res;
     }
 
-    public override void doAction(Minion agent)
+    public override void moveToActionLoc(Minion minion)
     {
-        throw new NotImplementedException();
+        minion.goToClosestResource(resourceType);
+    }
+
+    public override void doAction(Minion minion)
+    {
+        minion.harvestResource(resourceType);
     }
 }
 

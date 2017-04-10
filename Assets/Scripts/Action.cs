@@ -75,6 +75,7 @@ public abstract class Action
         return true;
     }
 
-    public abstract void doAction(Minion agent);
+    public abstract void moveToActionLoc(Minion minion);
+    public abstract void doAction(Minion minion);
 }
 

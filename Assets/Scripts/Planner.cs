@@ -5,21 +5,22 @@ using UnityEngine;
 
 public class Planner
 {
-    Action finalGoal;
-    Node actionTree;
-    List<Action> possibleActions;
+    public Action finalGoal { get; private set; }
+    private Node actionTree;
+    private List<Action> possibleActions;
 
-    public Planner()
+    public Planner(Position2D baseLocation)
     {
-        initActions();
+        initActions(baseLocation);
+        actionTree = buildGraph(finalGoal);
     }
 
-    private void initActions()
+    private void initActions(Position2D baseLocation)
     {
         possibleActions = new List<Action>();
 
         Explore explore = new Explore();
-        Explore exploreMountains; //TODO
+        //Explore exploreMountains; //TODO
 
         MoveToBase moveToBase = new MoveToBase();
 
@@ -31,7 +32,7 @@ public class Planner
         CraftingRecipe makeShip = new CraftingRecipe();
         CraftingRecipe makeWood = new CraftingRecipe();
 
-        HarvestResource getWood = new HarvestResource();
+		HarvestResource getWood = new HarvestResource(Resource.Wood);
 
         GetTool getAxe = new GetTool(State.hasAxe, State.axeAtBase);
 
@@ -70,10 +71,8 @@ public class Planner
         possibleActions.Add(getAxe);
         possibleActions.Add(explore);
         possibleActions.Add(getWood);
-        
 
-        actionTree = buildGraph(makeWood);
-        
+        finalGoal = makeWood;
      
     }
 

@@ -5,64 +5,47 @@ using UnityEngine;
 public class Inventory {
 
 	private Dictionary<Resource, int> items;
-    private const int limit = 10;
-    private int freeSpace = 10;
+    public int freeSpace { get; private set; }
     private bool isMinionAgent;
 
 
-    public Inventory(bool isMinionAgent)
+    public Inventory(int inventoryCapacity)
     {
-        this.isMinionAgent = isMinionAgent;
+        freeSpace = inventoryCapacity;
         items = new Dictionary<Resource, int>();
     }
 
-	public void addItem(Resource res){
-        int quantity = 1;
-        int temp;
-
-            
-        if (isSpace() || !isMinionAgent)
-        {
-            if (items.ContainsKey(res))
-            {
-                items.TryGetValue(res, out quantity);
-                temp = (int)quantity;
-                temp++;
-                quantity = temp;
-                items.Remove(res);
-            }
-            items.Add(res, quantity);
-            reduceInventorySpace();
-        }
-       
-	}
-
-    public Resource removeItem(Resource res)
+    public bool addItem(Resource res, int amount)
     {
-        int quantity = 1;
-        int temp = 0;
-        Resource rtnVal = Resource.Nothing;
-
-        if (isSpace() || !isMinionAgent)
+        if (freeSpace >= amount)
         {
             if (items.ContainsKey(res))
             {
-                items.TryGetValue(res, out quantity);
-                temp = (int)quantity;
-                temp--;
-                quantity = temp;
-                items.Remove(res);
-                rtnVal = res;
+                items[res] += amount;
             }
-            if (temp == 0)
+            else {
+               items.Add(res, amount);
+            }
+            freeSpace -= amount;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public bool removeItem(Resource res, int amount)
+    {
+        if (items.ContainsKey(res))
+        {
+            if (items[res] >= amount)
             {
-                items.Add(res, quantity);
-                increaseInventorySpace();
+                items[res] -= amount;
+                freeSpace += amount;
+                return true;
             }
         }
-        
 
-        return rtnVal;
+        return false;
     }
 
     //TOSO num of resources
@@ -82,25 +65,6 @@ public class Inventory {
         return false;
     }
 
-    public bool isSpace()
-    {
-        if(freeSpace > 0)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool isEmpty()
-    {
-        if(freeSpace == limit)
-        {
-            return true;
-        }
-        return false;
-    }
-
     public int getItemCount(Resource r)
     {
         if (items.ContainsKey(r))
@@ -111,23 +75,25 @@ public class Inventory {
             return 0;
     }
 
-    private void reduceInventorySpace()
-    {
-        freeSpace--;
-        if (freeSpace < 0)
-        {
-            freeSpace = 0;
-        }
-        
-    }
 
-    private void increaseInventorySpace()
+    public void depositInventoryToBase(Inventory baseItems)
     {
-        freeSpace++;
-        if (freeSpace > limit)
+        List<Resource> keys = new List<Resource>();
+
+
+        foreach (var item in items)
         {
-            freeSpace = limit;
+            keys.Add(item.Key);
         }
 
+        foreach (Resource key in keys)
+        {
+            baseItems.addItem(key, items[key]);
+            bool removeSuccess = this.removeItem(key, items[key]);
+
+            //Shouldn't happen
+            if (!removeSuccess)
+                throw new System.Exception();
+        }
     }
 }

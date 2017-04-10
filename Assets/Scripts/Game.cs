@@ -32,10 +32,13 @@ public class Game : MonoBehaviour
 
     public Transform minionPrefab;
 
+    public Transform victoryMessage;
+
 	private AutoMap mapGenerator;
 	private Map map;
 	private Base homeBase;
 	private Minion[] minions;
+    private Action[] currentMinionAction;
 
 	private Transform[,] tileSprites;
 	private Transform[,] undiscoveredSprites;
@@ -55,15 +58,21 @@ public class Game : MonoBehaviour
 		mapGenerator = new AutoMap (mapSize);
 		map = mapGenerator.CreateMap ();
 
-        homeBase = new Base(map);
+        homeBase = new Base(map, mapGenerator.basePosition);
+
 		minions = new Minion[minionCount];
         minionSprites = new Transform[minionCount];
+        planner = new Planner(homeBase.basePosition);
+        currentMinionAction = new Action[minionCount];
+
         List<Position2D> minionPosList = mapGenerator.GetMinionPositions(minionCount);
         for(int i = 0; i < minionCount; i++)
         {
             minions[i] = new Minion(minionPosList[i].x, minionPosList[i].y, map, homeBase, tileSize);
             minionSprites[i] = Instantiate(minionPrefab);
             minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
+            currentMinionAction[i] = planner.getNextAction(minions[i]);
+			currentMinionAction [i].moveToActionLoc (minions [i]);
         }
 
 		Bounds tileBounds = waterPrefab.GetComponent<Renderer> ().bounds;
@@ -152,7 +161,7 @@ public class Game : MonoBehaviour
 			}
 		}
 
-        planner = new Planner();
+
 
         StartCoroutine(GameLoop());
     }
@@ -166,22 +175,39 @@ public class Game : MonoBehaviour
 
     IEnumerator GameLoop()
     {
-        Action nextAction;
         while (!gameOver)
         {
             for (int i = 0; i < minionCount; i++)
             {
-                nextAction = planner.getNextAction(minions[i]);
-                nextAction.doAction(minions[i]);
+                if (minions[i].takeStep())
+                {
+                    minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
+                }
+                else
+                {
+                    if (currentMinionAction[i] != planner.finalGoal)
+                    {
+                        currentMinionAction[i].doAction(minions[i]);
 
-                minions[i].takeStep();
-                minionSprites[i].position = new Vector3(tileSize * minions[i].getCurPos().x, tileSize * minions[i].getCurPos().y, minionDepth);
+                        currentMinionAction[i] = planner.getNextAction(minions[i]);
+                        currentMinionAction[i].moveToActionLoc(minions[i]);
+                    }
+                    else
+                    {
+                        currentMinionAction[i].doAction(minions[i]);
+                        gameOver = true;
+                    }
+                }
             }
 
 			UpdateMap ();
 
             yield return new WaitForSeconds(timeStep);
         }
+
+        Transform victory = Instantiate(victoryMessage);
+        victory.position = new Vector3(0,0,-3);
+
     }
 
 	private void UpdateMap()
