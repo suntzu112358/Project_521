@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -15,7 +14,14 @@ public class Explore : Action
     public override void moveToActionLoc(Minion minion)
     {
         Position2D nextPos = findNextFrontier(minion);
-        minion.goToPos(nextPos);
+        if (nextPos == new Position2D(-1, -1))
+        {
+            minion.agentInfo.recalculateFrontier(minion.canClimbMountains());
+        }
+        else
+        {
+            minion.goToPos(nextPos);
+        }
     }
 
     public override void doAction(Minion minion)
@@ -25,56 +31,92 @@ public class Explore : Action
 
     public Position2D findNextFrontier(Minion minion)
     {
-        Knowledge.Frontier newFrontier;
         Map map = minion.agentInfo.map;
-        List<Knowledge.Frontier> frontiers = minion.agentInfo.frontiers;
+        List<Position2D> frontiers = minion.agentInfo.frontiers;
         Position2D curPos = minion.getCurPos();
 
-        int minIndex = 0;
-        int minDiff = map.mapSize;
-        int maxProbIndex = 0;
-        float maxProb = 0;
-        int temp;
+        Position2D nextFrontier = new Position2D(-1, -1);
 
-        if (frontiers.Count == 0)
+        Dictionary<Position2D, float> frontierValue = new Dictionary<Position2D, float>();
+        foreach (Position2D pos in frontiers)
         {
-
-        }
-        for (int i = 0; i < frontiers.Count; i++)
-        {
-
-            temp = Mathf.Abs(frontiers[i].pos.x - curPos.x) + Mathf.Abs(frontiers[i].pos.y - curPos.y);
-            if (temp < minDiff)
+            if (!frontierValue.ContainsKey(pos) && map.isPassable(map.getTileTypeAt(pos.x, pos.y), minion.canClimbMountains()))
             {
-                minIndex = i;
-                minDiff = temp;
+                float score = 0;
+                
+                List<Position2D> visibleNeighbors = new List<Position2D>();
+                visibleNeighbors.Add(new Position2D(pos.x + 1, pos.y));
+                visibleNeighbors.Add(new Position2D(pos.x - 1, pos.y));
+                visibleNeighbors.Add(new Position2D(pos.x, pos.y + 1));
+                visibleNeighbors.Add(new Position2D(pos.x, pos.y - 1));
+                visibleNeighbors.Add(new Position2D(pos.x + 2, pos.y));
+                visibleNeighbors.Add(new Position2D(pos.x - 2, pos.y));
+                visibleNeighbors.Add(new Position2D(pos.x, pos.y + 2));
+                visibleNeighbors.Add(new Position2D(pos.x, pos.y - 2));
+                visibleNeighbors.Add(new Position2D(pos.x + 1, pos.y + 1));
+                visibleNeighbors.Add(new Position2D(pos.x + 1, pos.y - 1));
+                visibleNeighbors.Add(new Position2D(pos.x - 1, pos.y + 1));
+                visibleNeighbors.Add(new Position2D(pos.x - 1, pos.y - 1));
+
+                foreach (Position2D n in visibleNeighbors)
+                {
+                    if (n.x >= 0 && n.x < map.mapSize && n.y >= 0 && n.y < map.mapSize)
+                    {
+                        if (!minion.hasDiscoveredTile(n.x, n.y))
+                        {
+                            score++;
+                        }
+                    }
+                }
+
+                frontierValue.Add(pos, score);
             }
-            if (maxProb < frontiers[i].probability)
+        }
+
+        //Divide value of frontier by cost required to complete it
+        List<Position2D> keys = new List<Position2D>();
+        foreach (var a in frontierValue)
+            keys.Add(a.Key);
+
+        foreach (Position2D pos in keys)
+        {
+            float frontiersCost = 1 + Mathf.Abs(minion.getCurPos().x - pos.x) + Mathf.Abs(minion.getCurPos().y - pos.y);
+            frontierValue[pos] /= frontiersCost;
+        }
+
+        //Normalize scores so that they add up to 1
+        float total = 0;
+        foreach (Position2D pos in keys)
+            total += frontierValue[pos];
+
+        if(total == 0)
+        {
+            return new Position2D(-1, -1);
+        }
+
+        foreach (Position2D pos in keys)
+            frontierValue[pos] /= total;
+
+        //Randomly select frontier while favoring spaces with more undiscovered tiles
+        //and penalizing frontiers that require moving far away from the minion's current position
+        float rand = Random.Range(0f, 1f);
+
+        foreach (var f in frontierValue)
+        {
+            if (rand < f.Value)
             {
-                maxProb = frontiers[i].probability;
-                maxProbIndex = i;
+                nextFrontier = f.Key;
+                break;
             }
+            rand -= f.Value;
         }
 
-        //  newKnowledge.Frontier = frontiers[minIndex];
-        //newKnowledge.Frontier = frontiers[maxProbIndex];
-        //Note this is one way of making it random, not sure if it's useful
-
-        if (minIndex == maxProbIndex)
+        if (nextFrontier == new Position2D(-1,-1))
         {
-            newFrontier = frontiers[maxProbIndex];
+            new Position2D(-1, -1);
         }
-        else if (UnityEngine.Random.Range(0f, 1f) < maxProb)
-        {
-            newFrontier = frontiers[maxProbIndex];
-        }
-        else
-        {
-            newFrontier = frontiers[minIndex];
-        }
-
-
-        return newFrontier.pos;
+        
+        return nextFrontier;
     }
 
     public override float getCost(Minion minion)

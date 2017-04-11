@@ -28,14 +28,19 @@ public class AutoMap
 
 	public Map CreateMap ()
 	{
-		generateTerrain ();
-		while (!ValidateTerrain ()) {
-			generateTerrain ();
-		}
+        bool success = false;
+        while (!success)
+        {
+            generateTerrain();
+            while (!ValidateTerrain())
+            {
+                generateTerrain();
+            }
 
-		PlaceResources ();
+            success = PlaceResources();
+        }
 
-		return map;
+        return map;
 	}
 
 	private void generateTerrain()
@@ -152,9 +157,11 @@ public class AutoMap
 				List<Position2D> neighbors = getRiverNeighbors (currentPos, river);
 
 				float minHeight = Mathf.Infinity;
-
-				if (neighbors.Count == 0)
-					break;
+                
+                if (neighbors.Count == 0)
+                {
+                    break;
+                }
 
 				Position2D minPos = new Position2D();
 				foreach (Position2D n in neighbors) 
@@ -256,7 +263,7 @@ public class AutoMap
 		}
 
 		int totalSize = mapSize * mapSize;
-		if (mountainCount < totalSize / 20 || forestCount < totalSize / 20 || plainsCount < totalSize / 20 || sandCount < totalSize / 20)
+		if (mountainCount < totalSize / 50 || forestCount < totalSize / 50 || plainsCount < totalSize / 50 || sandCount < totalSize / 50)
 			return false;
 
 
@@ -442,7 +449,7 @@ public class AutoMap
 		return neighbors;
 	}
 
-	private void PlaceResources()
+	private bool PlaceResources()
 	{
 		//Get a list of all possible positions to place each resource type
 		List<Position2D> baseSpots = new List<Position2D>();
@@ -556,7 +563,10 @@ public class AutoMap
 				map.AddResource (pos.x, pos.y, Resource.Iron);
 		}
 
-		//Add Sheep
+        //Add Sheep
+        if (sheepSpots.Count == 0)
+            return false;
+
 		int sheepCount = Random.Range (2, 6);
 		for (int i = 0; i < sheepCount; i++) {
 			Position2D pos = sheepSpots [Random.Range (0, sheepSpots.Count)];
@@ -567,6 +577,8 @@ public class AutoMap
 		//Add Wind Bottle
 		Position2D bottlePos = bottleSpots [Random.Range (0, bottleSpots.Count)];
 		map.AddResource (bottlePos.x, bottlePos.y, Resource.WindBottle);
+
+        return true;
 	}
 
     public List<Position2D> GetMinionPositions(int minionCount)

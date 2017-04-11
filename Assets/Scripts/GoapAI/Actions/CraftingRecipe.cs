@@ -32,6 +32,11 @@ public class CraftingRecipe : Action {
         {
             minion.addItemToBase(postCond.Key, postCond.Value);
         }
+        foreach (var boolPostCond in boolPostConditions)
+        {
+            minion.agentInfo.setState(boolPostCond.Key, boolPostCond.Value);
+            minion.setBaseState(boolPostCond.Key, boolPostCond.Value);
+        }
     }
 
     public override float getCost(Minion minion)

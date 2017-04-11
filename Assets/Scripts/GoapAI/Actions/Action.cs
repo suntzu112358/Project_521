@@ -56,7 +56,7 @@ public abstract class Action
         this.boolPostConditions = boolPostConditions;
     }
 
-    public bool isDoableByMinion(Minion minion)
+    public virtual bool isDoableByMinion(Minion minion)
     {
         foreach(var preCond in preConditions)
         {

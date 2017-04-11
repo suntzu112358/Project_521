@@ -7,15 +7,15 @@ using UnityEngine;
 
 public class GetTool : Action
 {
-    State toolType;
+    State hasTool;
     State toolIsAtBase;
 
-    public GetTool(State toolType, State toolTypeIsAtBase) : base()
+    public GetTool(State hasTool, State toolTypeIsAtBase) : base()
     {
         addPreCond(toolTypeIsAtBase, true);
-        addPostCond(toolType, true);
+        addPostCond(hasTool, true);
 
-        this.toolType = toolType;
+        this.hasTool = hasTool;
         this.toolIsAtBase = toolTypeIsAtBase;
     }
 
@@ -26,8 +26,8 @@ public class GetTool : Action
 
     public override void doAction(Minion minion)
     {
-        minion.baseUpdate(true);
-        minion.tryGetTool(toolType, toolIsAtBase);
+        minion.baseUpdate(false);
+        minion.tryGetTool(hasTool, toolIsAtBase);
     }
 
     public override float getCost(Minion minion)

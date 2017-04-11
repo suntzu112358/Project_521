@@ -6,9 +6,11 @@ public class Planner
 {
 
     public Action finalGoal { get; private set; }
+    private Action defaultAction;
     private Node actionTree;
     private List<Action> possibleActions;
     private ActionFactory actionFactory;
+    
 
 
     public Planner(Position2D baseLocation)
@@ -61,11 +63,15 @@ public class Planner
         actionToAdd = actionFactory.getNextAction(typeof(MoveToBase));
         possibleActions.Add(actionToAdd);
 
+        //Get bridge placing action
+        actionToAdd = actionFactory.getNextAction(typeof(BuildBridge));
+        possibleActions.Add(actionToAdd);
+
         //Get the final goal action
         finalGoal = actionFactory.getGoalAction();
 
-        actionTree = buildGraph(finalGoal);
-
+        //Action for minion to do when he can't do anything to move towards th goal
+        defaultAction = actionFactory.getDefaultAction();
     }
 
     public Action getNextAction(Minion minion)
@@ -74,9 +80,11 @@ public class Planner
 
         List<Action> possibleActions = getPossibleActions(minion);
 
+        //If no actions are found that can help the minions achieve their goal,
+        //They default to some fixed action, (in our case they return to the base)
         if(possibleActions.Count == 0)
         {
-            possibleActions = getPossibleActions(minion);
+            return defaultAction;
         }
 
         //Count number of times each action occurs in the tree
@@ -233,17 +241,24 @@ public class Planner
 
 
         int matches = 0;
-        int tempVal;
-        bool tempBool;
 
         foreach (var childR in subGoalPostRes)
         {
             if (goalPreRes.ContainsKey(childR.Key))
             {
-                goalPreRes.TryGetValue(childR.Key, out tempVal);
-                if (childR.Value > 0 && tempVal > 0)
+                if (subGoal.preConditions.ContainsKey(childR.Key))
                 {
-                    matches++;
+                    if (childR.Value - subGoal.preConditions[childR.Key] > 0 && goalPreRes[childR.Key] > 0)
+                    {
+                        matches++;
+                    }
+                }
+                else
+                {
+                    if (childR.Value > 0 && goalPreRes[childR.Key] > 0)
+                    {
+                        matches++;
+                    }
                 }
             }
         }
@@ -252,8 +267,7 @@ public class Planner
         {
             if (goalPreState.ContainsKey(childS.Key))
             {
-                goalPreState.TryGetValue(childS.Key, out tempBool);
-                if ( childS.Value == tempBool)
+                if ( childS.Value == goalPreState[childS.Key])
                 {
                     matches++;
                 }

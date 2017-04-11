@@ -9,63 +9,22 @@ public class Knowledge {
 
     Dictionary<State, bool> curAgentState;
 
-    public List<Frontier> frontiers { get; private set; }
-    public List<Frontier> riverFrontiers { get; private set; }
-    public bool canCrossMountains = false; //use a reference NOT a primitive type TODO or rather a function calls
+    public List<Position2D> frontiers { get; private set; }
+    public List<Position2D> riverFrontiers { get; private set; }
 
     private Inventory lastBaseInventory;
 
     private AStar pathFinder;
-    
 
-    public class Frontier
-    {
-        public Position2D pos { get; set; }
-        public float probability { get; private set; }
-
-        public Frontier (Position2D pos, int mapSize, bool north, bool east)
-        {
-            this.pos = pos;
-            this.probability = calculateProb(mapSize, north, east);
-        }
-
-        private float calculateProb(int mapSize, bool north, bool east)
-        {
-            float prob = 0;
-            float difX, difY;
-
-            if (east)
-            {
-                difX = Mathf.Abs(mapSize - pos.x) ;
-            }else
-            {
-                difX = pos.x;
-            }
-
-            if (north)
-            {
-                difY = Mathf.Abs(mapSize - pos.y);
-            }else
-            {
-                difY = pos.y;
-            }
-
-            prob = (difX * difY) / (mapSize * mapSize);
-
-            
-
-            return prob;
-        }
-
-    }
+    public Position2D basePosition { get; private set; }
 
 	public Knowledge(Map map, Base homeBase)
 	{
 		this.map = map;
 		isRevealedTile = new bool[map.mapSize, map.mapSize];
 
-        frontiers = new List<Frontier>();
-        riverFrontiers = new List<Frontier>();
+        frontiers = new List<Position2D>();
+        riverFrontiers = new List<Position2D>();
 
         for (int i = 0; i < map.mapSize; i++)
         {
@@ -75,11 +34,11 @@ public class Knowledge {
             }
         }
 
+        basePosition = homeBase.basePosition;
 
         this.curAgentState = new Dictionary<State, bool>();
         pathFinder = new AStar(map.mapSize, map.mapSize, map);
         lastBaseInventory = homeBase.copyBaseInventory();
-
     }
 
     private void removeFrontier(int x, int y)
@@ -87,7 +46,7 @@ public class Knowledge {
         Position2D temp = new Position2D(x, y);
         for(int i = 0; i < frontiers.Count; i++)
         {
-            if(frontiers[i].pos == temp)
+            if(frontiers[i] == temp)
             {
                 frontiers.RemoveAt(i);
                 return;
@@ -114,20 +73,24 @@ public class Knowledge {
 		return false;
 	}
 
-    public void addFrontier(Frontier f, bool blockedByRiver)
+    public void addFrontier(Position2D frontier, bool blockedByRiver, bool canCrossMountains)
     {
-		if (isFrontier (f.pos.x, f.pos.y)) {
-			if (f.probability > 0 && map.isPassable (map.getTileTypeAt (f.pos.x, f.pos.y), canCrossMountains)) {
+		if (isFrontier (frontier.x, frontier.y)) {
+			if (map.isPassable (map.getTileTypeAt (frontier.x, frontier.y), canCrossMountains)) {
                 if (!blockedByRiver)
-                    frontiers.Add(f);
+                    frontiers.Add(frontier);
                 else
-                    riverFrontiers.Add(f);
+                {
+                    riverFrontiers.Add(frontier);
+                    setState(State.needsBridge, true);
+                }
 			}  
 		}
     }
 
-	public void discoverTiles(int x, int y){
-		if (isRevealedTile[x, y] && !isFrontier(x,y))
+	public void discoverTiles(int x, int y, bool canCrossMountains)
+    {
+		if (!isFrontier(x,y))
         {
             removeFrontier(x, y);
         }
@@ -169,7 +132,9 @@ public class Knowledge {
                             //Might be blocked by a river, do A* to see if it is accessible
                             List<Position2D> pathAttempt = pathFinder.pathFindNewTarget(new Position2D(x, y), new Position2D(p.x, p.y), canCrossMountains);
                             if (pathAttempt == null)
+                            {
                                 blockedByRiver = true;
+                            }
                         }
                     }
 
@@ -203,9 +168,7 @@ public class Knowledge {
                         }
                     }
 
-                    bool north = p.y > y;
-					bool east = p.x > x;
-					addFrontier(new Frontier(new Position2D(p.x, p.y), map.mapSize, north, east), blockedByRiver);
+					addFrontier(new Position2D(p.x, p.y), blockedByRiver, canCrossMountains);
 				}
 				else if (!isFrontier(p.x, p.y))
 				{
@@ -241,20 +204,25 @@ public class Knowledge {
 
     public float getClosestResourceDistance(Resource r, Position2D curPos)
     {
-        List<Position2D> resourcePositions =  map.getResourcePositions(r);
         float min = Mathf.Infinity;
-        foreach(Position2D p in resourcePositions)
+        for (int i = 0; i < map.mapSize; i++)
         {
-            if (min > Mathf.Abs(p.x - curPos.x) + Mathf.Abs(p.y - curPos.y))
+            for (int j = 0; j < map.mapSize; j++)
             {
-                min = Mathf.Abs(p.x - curPos.x) + Mathf.Abs(p.y - curPos.y);
+                if (map.getResource(i, j) == map.getResource(i,j) && isRevealedTile[i, j])
+                {
+                    if (min > Mathf.Abs(i - curPos.x) + Mathf.Abs(j - curPos.y))
+                    {
+                        min = Mathf.Abs(i - curPos.x) + Mathf.Abs(j - curPos.y);
+                    }
+                }
             }
         }
 
         return min;
     }
 
-    public List<Position2D> getPathToClosestResource(Resource resType, Position2D curPos)
+    public List<Position2D> getPathToClosestResource(Resource resType, Position2D curPos, bool canCrossMountains)
     {
         List<Position2D> resPositions = new List<Position2D>();
         for(int i=0; i<map.mapSize; i++)
@@ -318,6 +286,31 @@ public class Knowledge {
         }
     }
 
+    public void recalculateFrontier(bool canCrossMountains)
+    {
+        frontiers.Clear();
+        for (int i = 1; i < map.mapSize - 1; i++)
+        {
+            for (int j = 1; j < map.mapSize - 1; j++)
+            {
+                if (isRevealedTile[i, j] && map.isPassable(map.getTileTypeAt(i, j), canCrossMountains))
+                {
+                    if(!isRevealedTile[i,j+1] || !isRevealedTile[i, j - 1] || !isRevealedTile[i+1, j] || !isRevealedTile[i-1, j])
+                    {
+                        if(pathFinder.pathFindNewTarget(basePosition, new Position2D(i, j), canCrossMountains) != null)
+                        {
+                            addFrontier(new Position2D(i,j), false, canCrossMountains);
+                        }
+                        else
+                        {
+                            addFrontier(new Position2D(i, j), true, canCrossMountains);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void syncStates(Base homeBase, bool keepTools)
     {
         Knowledge baseKnowledge = homeBase.baseInfo;
@@ -329,22 +322,28 @@ public class Knowledge {
             {
                 baseKnowledge.setState(State.hasAxe, true);
                 baseKnowledge.setState(State.axeAtBase, true);
+                this.setState(State.hasAxe, false);
             }
             if (this.getStateInfo(State.hasPickAxe))
             {
                 baseKnowledge.setState(State.hasPickAxe, true);
                 baseKnowledge.setState(State.pickAxeAtBase, true);
+                this.setState(State.hasPickAxe, false);
             }
-
-            this.setState(State.hasAxe, false);
-            this.setState(State.hasPickAxe, false);
+            if (this.getStateInfo(State.hasMtnKit) && !baseKnowledge.getStateInfo(State.mtnKitAtBase))
+            {
+                baseKnowledge.setState(State.hasMtnKit, true);
+                baseKnowledge.setState(State.mtnKitAtBase, true);
+                this.setState(State.hasMtnKit, false);
+            }
         }
 
         this.setState(State.axeAtBase, baseKnowledge.getStateInfo(State.axeAtBase));
         this.setState(State.pickAxeAtBase, baseKnowledge.getStateInfo(State.pickAxeAtBase));
+        this.setState(State.mtnKitAtBase, baseKnowledge.getStateInfo(State.mtnKitAtBase));
 
         //Update if new resources have been found
-        if(this.getStateInfo(State.hasPathToGrass) || baseKnowledge.getStateInfo(State.hasPathToGrass))
+        if (this.getStateInfo(State.hasPathToGrass) || baseKnowledge.getStateInfo(State.hasPathToGrass))
         {
             this.setState(State.hasPathToGrass,true);
             baseKnowledge.setState(State.hasPathToGrass, true);
@@ -378,10 +377,35 @@ public class Knowledge {
         this.setState(State.hasSpace, true);
 
         lastBaseInventory = homeBase.copyBaseInventory();
+
+        if (getStateInfo(State.needsBridge) != baseKnowledge.getStateInfo(State.needsBridge))
+        {
+            recomputeRiverFrontiers();
+            setState(State.needsBridge, riverFrontiers.Count > 0);
+            baseKnowledge.setState(State.needsBridge, riverFrontiers.Count > 0);
+        }
     }
 
     public int getItemsAtBase(Resource r)
     {
         return lastBaseInventory.getItemCount(r);
+    }
+
+    public void recomputeRiverFrontiers()
+    {
+        List<Position2D> toRemove = new List<Position2D>();
+        foreach (Position2D p in riverFrontiers)
+        {
+            if (pathFinder.pathFindNewTarget(basePosition, p, false) != null)
+            {
+                toRemove.Add(p);
+            }
+        }
+
+        foreach(Position2D p in toRemove)
+        {
+            riverFrontiers.Remove(p);
+            frontiers.Add(p);
+        }
     }
 }

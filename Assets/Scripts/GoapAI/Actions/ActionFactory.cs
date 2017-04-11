@@ -12,8 +12,12 @@ public class ActionFactory
     private static Queue<Explore> exploreActions;
 
     private static MoveToBase goToBaseAction = null;
+    private static BuildBridge buildBridgeAction = null;
+
 
     private static Action goalAction = null;
+
+    private static Action defaultAction = null;
 
     public ActionFactory()
     {
@@ -22,12 +26,19 @@ public class ActionFactory
         initHarvesting();
         initGoToBase();
         initExploring();
+        initBuildBridge();
+        initWait();
         createGoalAction();
     }
 
     public Action getGoalAction()
     {
         return goalAction;
+    }
+
+    public Action getDefaultAction()
+    {
+        return defaultAction;
     }
 
     public Action getNextAction(Type actionType)
@@ -60,6 +71,10 @@ public class ActionFactory
             //No need to check if null because null is returned if no such object exists in factory at that moment
             nextAction = goToBaseAction;
         }
+        else if (actionType == typeof(BuildBridge))
+        {
+            nextAction = buildBridgeAction;
+        }
         else if (actionType == typeof(Explore))
         {
             if (exploreActions.Count != 0)
@@ -78,21 +93,24 @@ public class ActionFactory
     private void initExploring()
     {
         Explore explore = new Explore();
+        Explore mountainExplore = new Explore();
 
         exploreActions = new Queue<Explore>();
         //TODO a mountain climbing explore
 
         exploreActions.Enqueue(explore);
+        exploreActions.Enqueue(mountainExplore);
 
         //Post conditions are that it will have a path to a resource
         //in the code we do NOT change the state based on these conditions
         //this is only for the planner to know the benefits of exploring
         explore.addPostCond(State.hasPathToWood, true);
         explore.addPostCond(State.hasPathToGrass, true);
-        explore.addPostCond(State.hasPathToIron, true);
-        explore.addPostCond(State.hasPathToSheep, true);
         explore.addPostCond(State.hasPathToStone, true);
-        explore.addPostCond(State.hasPathToWind, true);
+        explore.addPostCond(State.needsBridge, true);
+
+        mountainExplore.addPreCond(State.hasMtnKit, true);
+        mountainExplore.addPostCond(State.hasPathToWind, true);
 
     }
 
@@ -111,8 +129,8 @@ public class ActionFactory
         harvestActions.Enqueue(getIron);
         harvestActions.Enqueue(getStone);
         harvestActions.Enqueue(getGrass);
-        //harvestActions.Enqueue(getWool);
-        //harvestActions.Enqueue(getWind);
+        harvestActions.Enqueue(getWool);
+        harvestActions.Enqueue(getWind);
 
         //Get wood
         //Pre: has a path to wood, has an axe
@@ -144,13 +162,14 @@ public class ActionFactory
         //Pre: has a path to sheep, has shears
         //Post: 1 wool in inventory
         getWool.addPreCond(State.hasPathToSheep, true);
-        getWool.addPreCond(State.hasShears, true);
+        //getWool.addPreCond(State.hasShears, true);
         getWool.addPostCond(Resource.Wool, 1);
 
         //Get wind bottle
         //Pre: has a path to wind bottle
         //Post: 1 wind bottle in inventory
         getWind.addPreCond(State.hasPathToWind, true);
+        getWind.addPreCond(State.hasMtnKit, true);
         getWind.addPostCond(Resource.WindBottle, 1);
 
     }
@@ -161,15 +180,19 @@ public class ActionFactory
         GetTool getAxe = new GetTool(State.hasAxe, State.axeAtBase);
         GetTool getPickAxe = new GetTool(State.hasPickAxe, State.pickAxeAtBase);
         GetTool getShears = new GetTool(State.hasShears, State.shearsAtBase);
-        //GetTool getBridge = new GetTool(State.hasBridge, State.bridgeAtBase);
-        // GetTool getMountainKit = new GetTool(State.hasKit, State.kitAtBase);
+        GetTool getMountianKit = new GetTool(State.hasMtnKit, State.mtnKitAtBase);
+        GetTool getBridge = new GetTool(State.hasBridge, State.bridgeAtBase);
 
         getToolActions = new Queue<GetTool>();
 
         getToolActions.Enqueue(getAxe);
         getToolActions.Enqueue(getPickAxe);
+        getToolActions.Enqueue(getMountianKit);
+        getToolActions.Enqueue(getBridge);
         //getToolActions.Enqueue(getShears);
 
+        getAxe.addPreCond(State.hasPickAxe, false);
+        getPickAxe.addPreCond(State.hasAxe, false);
     }
 
     private void initRecipies()
@@ -188,9 +211,9 @@ public class ActionFactory
 
         recipeActions.Enqueue(makeHammer);
         recipeActions.Enqueue(makeRope);
-        //recipeActions.Enqueue(makeMtnClimbKit);
-        //recipeActions.Enqueue(makeFabric);
-        //recipeActions.Enqueue(makeBridge);
+        recipeActions.Enqueue(makeMtnClimbKit);
+        recipeActions.Enqueue(makeFabric);
+        recipeActions.Enqueue(makeBridge);
         //recipeActions.Enqueue(makeShears);
 
 
@@ -215,7 +238,7 @@ public class ActionFactory
         //Post: hammer, mountain climbing kit
         makeMtnClimbKit.addPreCond(Resource.Rope, 2);
         makeMtnClimbKit.addPreCond(Resource.Iron, 1);
-        makeMtnClimbKit.addPostCond(Resource.MontainKit, 1);
+        makeMtnClimbKit.addPostCond(State.mtnKitAtBase, true);
         makeMtnClimbKit.addTool(Resource.Hammer);
 
         //Fabric
@@ -228,9 +251,9 @@ public class ActionFactory
         //Bridge
         //Pre: 10 wood, 4 rope
         //Post: 1 bridge
-        makeBridge.addPreCond(Resource.Wood, 10);
-        makeBridge.addPreCond(Resource.Rope, 4);
-        makeBridge.addPostCond(Resource.Bridge, 1);
+        makeBridge.addPreCond(Resource.Wood, 5);
+        makeBridge.addPreCond(Resource.Rope, 2);
+        makeBridge.addPostCond(State.bridgeAtBase, true);
 
         //Shears
         //Pre: 1 wood, 1 iron, 1 hammer
@@ -246,6 +269,16 @@ public class ActionFactory
         goToBaseAction = new MoveToBase();
     }
 
+    private void initWait()
+    {
+        defaultAction = new Wait();
+    }
+
+    private void initBuildBridge()
+    {
+        buildBridgeAction = new BuildBridge();
+    }
+
     private void createGoalAction()
     {
         CraftingRecipe makeShip = new CraftingRecipe();
@@ -255,9 +288,9 @@ public class ActionFactory
         //post: 1 hammer, 1 ship
         makeShip.addPreCond(Resource.Wood, 15);
         makeShip.addPreCond(Resource.Iron, 15);
-        makeShip.addPreCond(Resource.Rope, 10);
-        //makeShip.addPreCond(Resource.Fabric, 30);
-        //makeShip.addPreCond(Resource.WindBottle, 1);
+        makeShip.addPreCond(Resource.Rope, 5);
+        makeShip.addPreCond(Resource.Fabric, 10);
+        makeShip.addPreCond(Resource.WindBottle, 1);
         makeShip.addPostCond(Resource.Ship, 1);
         makeShip.addTool(Resource.Hammer);
 

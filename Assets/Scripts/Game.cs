@@ -6,7 +6,7 @@ public class Game : MonoBehaviour
 {
 	public int mapSize;
 	public int minionCount = 1;
-    private float timeStep = 0.1f;
+    private float timeStep = 0.05f;
 	private float tileSize;
 
 	public bool showFullMap = false;
@@ -22,6 +22,7 @@ public class Game : MonoBehaviour
 	public Transform basePrefab;
 	public Transform snowyMountainPrefab;
 	public Transform undiscoveredPrefab;
+    public Transform bridgePrefab;
 
 	public Transform grassPrefab;
 	public Transform stonePrefab;
@@ -219,7 +220,7 @@ public class Game : MonoBehaviour
         }
 
         Transform victory = Instantiate(victoryMessage);
-        victory.position = new Vector3(0,0,-3);
+        victory.position = new Vector3(mapSize/2 * tileSize,mapSize/2 * tileSize, -3);
 
     }
 
@@ -229,6 +230,13 @@ public class Game : MonoBehaviour
 		{
 			for (int j = 0; j < mapSize; j++) 
 			{
+                if (map.getTileTypeAt(i,j) == TileType.Bridge)
+                {
+                    Destroy(tileSprites[i, j].gameObject);
+                    tileSprites[i, j] = Instantiate(bridgePrefab);
+                    tileSprites[i, j].position = new Vector3(i * tileSize, j * tileSize, terrainDepth);
+                }
+
 				if (!showFullMap) {
 					if (!isDiscoveredTile [i, j]) {
 						//If the tile hasn't been revealed on the screen, check if a minion has found it

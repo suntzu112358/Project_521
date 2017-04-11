@@ -31,7 +31,7 @@ public class Minion {
         currentPath = new List<Position2D>();
 
         astar = new AStar(map.mapSize, map.mapSize, map);
-        agentInfo.discoverTiles(this.posX, this.posY);
+        agentInfo.discoverTiles(this.posX, this.posY, canClimbMountains());
 
         this.homeBase = homeBase;
         basePosition = homeBase.basePosition;
@@ -50,11 +50,20 @@ public class Minion {
 
         agentInfo.setState(State.hasPickAxe, false);
         agentInfo.setState(State.hasAxe, false);
+        agentInfo.setState(State.hasMtnKit, false);
+        agentInfo.setState(State.hasBridge, false);
+        agentInfo.setState(State.hasShears, false);
 
         agentInfo.setState(State.hasSpace, true);
 
         agentInfo.setState(State.axeAtBase, true);
         agentInfo.setState(State.pickAxeAtBase, true);
+        agentInfo.setState(State.shearsAtBase, false);
+        agentInfo.setState(State.mtnKitAtBase, false);
+        agentInfo.setState(State.bridgeAtBase, false);
+
+        agentInfo.setState(State.needsBridge, false);
+
 
     }
     
@@ -91,7 +100,7 @@ public class Minion {
     {
         if (!isMoving)
         {
-            currentPath = astar.pathFindNewTarget(new Position2D(posX, posY), targetPos, canCrossMountains());
+            currentPath = astar.pathFindNewTarget(new Position2D(posX, posY), targetPos, canClimbMountains());
             if (currentPath == null)
             {
                 throw new System.ArgumentNullException();
@@ -118,7 +127,7 @@ public class Minion {
             posX = nextPos.x;
             posY = nextPos.y;
 
-            agentInfo.discoverTiles(posX, posY);
+            agentInfo.discoverTiles(posX, posY, canClimbMountains());
         }
 
         return true;
@@ -142,11 +151,6 @@ public class Minion {
         return new Position2D(posX, posY);
     }
 
-    public bool canCrossMountains()
-    {
-        return agentBag.hasResource(Resource.MontainKit);
-    }
-
 
 	public bool hasDiscoveredTile(int x, int y)
 	{
@@ -163,7 +167,7 @@ public class Minion {
     {
         if (!isMoving)
         {
-            currentPath = agentInfo.getPathToClosestResource(resType, getCurPos());
+            currentPath = agentInfo.getPathToClosestResource(resType, getCurPos(), canClimbMountains());
             if (currentPath == null)
             {
                 throw new System.ArgumentNullException();
@@ -176,6 +180,7 @@ public class Minion {
     {
         agentBag.depositInventoryToBase(homeBase.baseItems);
         agentInfo.syncRevealedTiles(homeBase.baseInfo);
+        agentInfo.recalculateFrontier(canClimbMountains());
         agentInfo.syncStates(homeBase, keepTools);
     }
 
@@ -212,5 +217,30 @@ public class Minion {
     public float getClosestResourceDistance(Resource r)
     {
         return agentInfo.getClosestResourceDistance(r, getCurPos());
+    }
+
+    public bool canClimbMountains()
+    {
+        return agentInfo.getStateInfo(State.hasMtnKit);
+    }
+
+    public void setBaseState(State s, bool b)
+    {
+        homeBase.baseInfo.setState(s, b);
+    }
+
+    public bool getBaseState(State s)
+    {
+        return homeBase.baseInfo.getStateInfo(s);
+    }
+
+    public void recomputeRiverFrontiers()
+    {
+        agentInfo.recomputeRiverFrontiers();
+    }
+
+    public bool needsBridge()
+    {
+        return agentInfo.riverFrontiers.Count > 0;
     }
 }

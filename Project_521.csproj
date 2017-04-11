@@ -80,11 +80,13 @@
     <Compile Include="Assets\Scripts\Game.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\Action.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\ActionFactory.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\BuildBridge.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\CraftingRecipe.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\Explore.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\GetTool.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\HarvestResource.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Actions\MoveToBase.cs" />
+    <Compile Include="Assets\Scripts\GoapAI\Actions\Wait.cs" />
     <Compile Include="Assets\Scripts\GoapAI\AgentData\Inventory.cs" />
     <Compile Include="Assets\Scripts\GoapAI\AgentData\Knowledge.cs" />
     <Compile Include="Assets\Scripts\GoapAI\Agents\Base.cs" />
